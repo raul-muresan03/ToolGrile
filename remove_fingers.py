@@ -22,10 +22,10 @@ def remove_fingers_hsv(img):
     res[skin_mask > 0] = (255, 255, 255)
     return res
 
-
+#chimie
 for i in range(1, 191):
-    path = f"pdf2images/pagina_{i}.png"
+    path = f"pdf2images/chimie/pagina_{i}.png"
     # img = cv2.imread(path)
     # out = remove_fingers_hsv(img)
-    # cv2.imwrite(f"temp/without_fingers/pagina_{i}_without_fingers.png", out)
+    # cv2.imwrite(f"temp/without_fingers/chimie/pagina_{i}_without_fingers.png", out)
     # print(f"Gata pagina_{i}.png")

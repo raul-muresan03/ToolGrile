@@ -1,8 +1,8 @@
 import fitz
 import os
 
-in_path = "input_pdf/culegere_chimie_cluj.pdf"
-out_path = "pdf2images"
+in_path = "input_pdf/culegere_bio_cluj.pdf"
+out_path = "pdf2images/bio"
 os.makedirs(out_path, exist_ok=True)
 
 doc = fitz.open(in_path)
