@@ -1,1 +1,0 @@
-1. sa fac sa se redenumeasca grila in functie de ce cifra are in poza (cu OCR)
