@@ -56,17 +56,17 @@ if __name__ == "__main__":
         "temp/bbox/bio/cap13_intrebari_asociative_recap/grile/done",
 
         #chimie
-        "temp/bbox/chimie/cap1_solutii_acizi_baze/grile/done",
-        "temp/bbox/chimie/cap2_compozitia_structura_compusilor_organici/grile/done",
-        "temp/bbox/chimie/cap3_compusi_hidroxilici/grile/done",
-        "temp/bbox/chimie/cap4_amine/grile/done",
-        "temp/bbox/chimie/cap5_aldehide_cetone/grile/done",
-        "temp/bbox/chimie/cap6_acizi_carboxilici/grile/done",
-        "temp/bbox/chimie/cap7_proteine/grile/done",
-        "temp/bbox/chimie/cap8_glucide/grile/done",
-        "temp/bbox/chimie/cap9_medicamente_droguri/grile/done",
-        "temp/bbox/chimie/cap10_izomerie/grile/done",
-        "temp/bbox/chimie/cap11_grile_asociative_recap/grile/done",
+        # "temp/bbox/chimie/cap1_solutii_acizi_baze/grile/done",
+        # "temp/bbox/chimie/cap2_compozitia_structura_compusilor_organici/grile/done",
+        # "temp/bbox/chimie/cap3_compusi_hidroxilici/grile/done",
+        # "temp/bbox/chimie/cap4_amine/grile/done",
+        # "temp/bbox/chimie/cap5_aldehide_cetone/grile/done",
+        # "temp/bbox/chimie/cap6_acizi_carboxilici/grile/done",
+        # "temp/bbox/chimie/cap7_proteine/grile/done",
+        # "temp/bbox/chimie/cap8_glucide/grile/done",
+        # "temp/bbox/chimie/cap9_medicamente_droguri/grile/done",
+        # "temp/bbox/chimie/cap10_izomerie/grile/done",
+        # "temp/bbox/chimie/cap11_grile_asociative_recap/grile/done",
     ]
 
     for folder_path in folders:

@@ -3,6 +3,8 @@ import re
 from PIL import Image
 import pytesseract
 import shutil
+from pathlib import Path
+
 
 def rename_images_by_ocr(folder_path):
     print(f"Starting OCR-based renaming and moving in: {folder_path}")
@@ -32,39 +34,46 @@ def rename_images_by_ocr(folder_path):
 
             try:
                 img = Image.open(original_full_path)
-                
+
                 img = img.convert('L')
-                
-                text = pytesseract.image_to_string(img, config='--psm 6', lang='ron+eng')
-                
+
+                text = pytesseract.image_to_string(
+                    img, config='--psm 6', lang='ron+eng')
+
                 # print(f"Extracted text from {filename}:\n{text[:200]}...")
 
                 match = number_pattern.search(text)
 
                 if match:
-                    grid_number = match.group(1) # Extrage numărul
-                    new_filename = f"{grid_number}.png" # Noul nume al fisierului (asumand .png)
-                    
+                    grid_number = match.group(1)  # Extrage numărul
+                    # Noul nume al fisierului (asumand .png)
+                    new_filename = f"{grid_number}.png"
+
                     # Calea completă pentru noul fișier în folderul 'done'
-                    destination_full_path = os.path.join(done_folder_path, new_filename)
+                    destination_full_path = os.path.join(
+                        done_folder_path, new_filename)
 
                     # Verifică dacă noul nume există deja în folderul 'done'
                     if os.path.exists(destination_full_path):
-                        print(f"Warning: Destination filename '{new_filename}' already exists in 'done' folder. Skipping {filename}.")
+                        print(
+                            f"Warning: Destination filename '{new_filename}' already exists in 'done' folder. Skipping {filename}.")
                     else:
                         # Mută și redenumește fișierul
                         shutil.move(original_full_path, destination_full_path)
-                        print(f"Renamed and moved: {filename} -> {new_filename} in 'done' folder.")
+                        print(
+                            f"Renamed and moved: {filename} -> {new_filename} in 'done' folder.")
                         renamed_and_moved_count += 1
                 else:
-                    print(f"No grid number found in {filename} using pattern. File remains in original folder.")
+                    print(
+                        f"No grid number found in {filename} using pattern. File remains in original folder.")
 
             except pytesseract.TesseractNotFoundError:
-                print("ERROR: Tesseract is not installed or not in your PATH. Please install it.")
+                print(
+                    "ERROR: Tesseract is not installed or not in your PATH. Please install it.")
                 return
             except Exception as e:
                 print(f"Error processing {filename}: {e}")
-            
+
             processed_files_count += 1
 
     except FileNotFoundError:
@@ -80,10 +89,41 @@ def rename_images_by_ocr(folder_path):
     print(f"\n--- Renaming and Moving process finished ---")
     print(f"Total files processed: {processed_files_count}")
     print(f"Total files renamed and moved: {renamed_and_moved_count}")
-    print(f"Files that could not be processed/renamed/moved: {processed_files_count - renamed_and_moved_count}")
+    print(
+        f"Files that could not be processed/renamed/moved: {processed_files_count - renamed_and_moved_count}")
+
+folders = [
+    # bio
+    # "C:\\proiecte_personale\\ToolGrile\\temp\\bbox\\bio\\cap1_corpul_uman_celula\\grile",
+    # "C:\\proiecte_personale\\ToolGrile\\temp\\bbox\\bio\\cap2_oasele_articulatiile\\grile",
+    "C:\\proiecte_personale\\ToolGrile\\temp\\bbox\\bio\\cap3_tesuturi_excitabile\\grile",
+    "C:\\proiecte_personale\\ToolGrile\\temp\\bbox\\bio\\cap4_sistemul_nervos\\grile",
+    "C:\\proiecte_personale\\ToolGrile\\temp\\bbox\\bio\\cap5_organe_de_simt\\grile",
+    "C:\\proiecte_personale\\ToolGrile\\temp\\bbox\\bio\\cap6_sistemul_endocrin_metabolism\\grile",
+    "C:\\proiecte_personale\\ToolGrile\\temp\\bbox\\bio\\cap7_sangele\\grile",
+    "C:\\proiecte_personale\\ToolGrile\\temp\\bbox\\bio\\cap8_sistemul_circulator\\grile",
+    "C:\\proiecte_personale\\ToolGrile\\temp\\bbox\\bio\\cap9_sistemul_respirator\\grile",
+    "C:\\proiecte_personale\\ToolGrile\\temp\\bbox\\bio\\cap10_sistemul_digestiv\\grile",
+    "C:\\proiecte_personale\\ToolGrile\\temp\\bbox\\bio\\cap11_sistemul_urinar\\grile",
+    "C:\\proiecte_personale\\ToolGrile\\temp\\bbox\\bio\\cap12_sistemul_reproducator\\grile",
+    "C:\\proiecte_personale\\ToolGrile\\temp\\bbox\\bio\\cap13_intrebari_asociative_recap\\grile",
+
+    # chimie
+    # "C:\\proiecte_personale\\ToolGrile\\temp\\bbox\\chimie\\cap1_solutii_acizi_baze\\grile",
+    # "C:\\proiecte_personale\\ToolGrile\\temp\\bbox\\chimie\\cap2_compozitia_structura_compusilor_organici\\grile",
+    # "C:\\proiecte_personale\\ToolGrile\\temp\\bbox\\chimie\\cap3_compusi_hidroxilici\\grile",
+    # "C:\\proiecte_personale\\ToolGrile\\temp\\bbox\\chimie\\cap4_amine\\grile",
+    # "C:\\proiecte_personale\\ToolGrile\\temp\\bbox\\chimie\\cap5_aldehide_cetone\\grile",
+    # "C:\\proiecte_personale\\ToolGrile\\temp\\bbox\\chimie\\cap6_acizi_carboxilici\\grile",
+    # "C:\\proiecte_personale\\ToolGrile\\temp\\bbox\\chimie\\cap7_proteine\\grile",
+    # "C:\\proiecte_personale\\ToolGrile\\temp\\bbox\\chimie\\cap8_glucide\\grile",
+    # "C:\\proiecte_personale\\ToolGrile\\temp\\bbox\\chimie\\cap9_medicamente_droguri\\grile",
+    # "C:\\proiecte_personale\\ToolGrile\\temp\\bbox\\chimie\\cap10_izomerie\\grile",
+    # "C:\\proiecte_personale\\ToolGrile\\temp\\bbox\\chimie\\cap11_grile_asociative_recap\\grile",
+]
 
 
-# folder_cu_grile = "C:\\proiecte_personale\\ToolGrile\\temp\\bbox\\bio\\cap13_intrebari_asociative_recap\\grile" 
-folder_cu_grile = "C:\\proiecte_personale\\ToolGrile\\temp\\bbox\\chimie\\cap11_grile_asociative_recap\\grile" 
-
-rename_images_by_ocr(folder_cu_grile)
+for folder_path in folders:
+    folder = Path(folder_path)
+    print(f"\n=== Procesăm folderul: {folder} ===")
+    rename_images_by_ocr(folder)
