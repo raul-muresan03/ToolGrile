@@ -1,0 +1,1 @@
+barem extractor functional -> barem in txt -> pentru fiecare simulare generata, sa se puna in folder  doar acele grile din barem

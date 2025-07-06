@@ -8,11 +8,13 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import inch
 from reportlab.pdfgen import canvas
 from reportlab.platypus import Image as ReportLabImage
+import shutil
 
 
 QUIZ_BASE_DIR = "final"  # Directorul rădăcină care conține "bio" și "chimie"
 # Directorul unde vor fi salvate simulările
 OUTPUT_SIMULATION_DIR = "simulari_generate"
+BAREM_BASE_DIR = "baremuri"
 
 # Criterii de selecție
 NUM_BIO_QUIZZES = 35
@@ -41,12 +43,12 @@ BIOLOGY_CHAPTER_WEIGHTS = {
     5: 0,
     6: 0,
     7: 0,
-    8: 2,
+    8: 0,
     9: 0,
     10: 0,
-    11: 1,
-    12: 5,
-    13: 0.5,
+    11: 0,
+    12: 0,
+    13: 1,
 
     # Dacă un capitol nu este listat, va avea ponderea implicită 1.0.
     # 1 - basic, 0.5 - sanse la jumatate, 2 - sanse duble
@@ -489,6 +491,9 @@ def generate_simulation():
     os.makedirs(OUTPUT_SIMULATION_DIR, exist_ok=True)
 
     simulation_name = f"simulare_{random.randint(1000,9999)}"
+    current_simulation_output_dir = os.path.join(
+        OUTPUT_SIMULATION_DIR, simulation_name)
+    os.makedirs(current_simulation_output_dir, exist_ok=True)
 
     txt_output_path = os.path.join(
         OUTPUT_SIMULATION_DIR, f"{simulation_name}_detalii.txt")
@@ -509,14 +514,60 @@ def generate_simulation():
     create_pdf_document(selected_bio_quizzes, selected_chimie_combined,
                         pdf_output_path, chapter_quiz_map_lines)
 
+    print("\nCopierea baremelor relevante...")
+
+    # Seturi pentru a stoca numerele unice de capitole folosite
+    unique_bio_chapters = set(quiz["chapter_number"]
+                              for quiz in selected_bio_quizzes)
+    unique_chimie_chapters = set(quiz["chapter_number"]
+                                 for quiz in selected_chimie_combined)
+
+    # Copiere bareme biologie
+    bio_barem_source_dir = os.path.join(BAREM_BASE_DIR, "bio")
+    for chapter_num in unique_bio_chapters:
+        barem_filename = f"bio_cap{chapter_num}_barem.png"
+        source_path = os.path.join(bio_barem_source_dir, barem_filename)
+        destination_path = os.path.join(
+            current_simulation_output_dir, barem_filename)
+
+        if os.path.exists(source_path):
+            try:
+                shutil.copy2(source_path, destination_path)
+                print(f"  Copiat barem biologie: {barem_filename}")
+            except Exception as e:
+                print(f"  Eroare la copierea baremului {barem_filename}: {e}")
+        else:
+            print(
+                f"  Avertisment: Barem '{barem_filename}' nu a fost găsit la '{source_path}'.")
+
+    # Copiere bareme chimie
+    chimie_barem_source_dir = os.path.join(BAREM_BASE_DIR, "chimie")
+    for chapter_num in unique_chimie_chapters:
+        barem_filename = f"chimie_cap{chapter_num}_barem.png"
+        source_path = os.path.join(chimie_barem_source_dir, barem_filename)
+        destination_path = os.path.join(
+            current_simulation_output_dir, barem_filename)
+
+        if os.path.exists(source_path):
+            try:
+                shutil.copy2(source_path, destination_path)
+                print(f"  Copiat barem chimie: {barem_filename}")
+            except Exception as e:
+                print(f"  Eroare la copierea baremului {barem_filename}: {e}")
+        else:
+            print(
+                f"  Avertisment: Barem '{barem_filename}' nu a fost găsit la '{source_path}'.")
+
     print("\nGenerarea simulării finalizată!")
 
-
-# --- Rularea Procesului Principal ---
 if __name__ == "__main__":
     if not os.path.exists(QUIZ_BASE_DIR):
         print(
             f"Eroare: Directorul de bază pentru grile '{QUIZ_BASE_DIR}' nu există.")
         print("Asigură-te că structura ta este 'final/bio/...' și 'final/chimie/...'.")
+    elif not os.path.exists(BAREM_BASE_DIR):
+        print(
+            f"Eroare: Directorul de bază pentru baremuri '{BAREM_BASE_DIR}' nu există.")
+        print("Asigură-te că ai folderul 'baremuri' cu subfolderele 'bio' și 'chimie' ce conțin baremele.")
     else:
         generate_simulation()
