@@ -19,7 +19,81 @@ NUM_BIO_QUIZZES = 35
 NUM_CHIMIE_TEORIE_QUIZZES = 10
 NUM_CHIMIE_PROBLEME_QUIZZES = 5
 
-# --- Funcții Utilitare (rămân la fel) ---
+# bio
+# cap1_corpul_uman_celula
+# cap2_oasele_articulatiile
+# cap3_tesuturi_excitabile
+# cap4_sistemul_nervos
+# cap5_organe_de_simt
+# cap6_sistemul_endocrin_metabolism
+# cap7_sangele
+# cap8_sistemul_circulator
+# cap9_sistemul_respirator
+# cap10_sistemul_digestiv
+# cap11_sistemul_urinar
+# cap12_sistemul_reproducator
+# cap13_intrebari_asociative_recap
+BIOLOGY_CHAPTER_WEIGHTS = {
+    1: 0,
+    2: 0,
+    3: 0,
+    4: 0,
+    5: 0,
+    6: 0,
+    7: 0,
+    8: 2,
+    9: 0,
+    10: 0,
+    11: 1,
+    12: 5,
+    13: 0.5,
+
+    # Dacă un capitol nu este listat, va avea ponderea implicită 1.0.
+    # 1 - basic, 0.5 - sanse la jumatate, 2 - sanse duble
+}
+
+# ----------------------------------------
+
+# chimie
+# cap1_solutii_acizi_baze
+# cap2_compozitia_structura_compusilor_organici
+# cap3_compusi_hidroxilici
+# cap4_amine
+# cap5_aldehide_cetone
+# cap6_acizi_carboxilici
+# cap7_proteine
+# cap8_glucide
+# cap9_medicamente_droguri
+# cap10_izomerie
+# cap11_grile_asociative_recap
+
+CHEMISTRY_CHAPTER_WEIGHTS_TEORIE = {
+    1: 1,
+    2: 1,
+    3: 1,
+    4: 1,
+    5: 1,
+    6: 1,
+    7: 1,
+    8: 1,
+    9: 1,
+    10: 1,
+    11: 1,
+}
+
+CHEMISTRY_CHAPTER_WEIGHTS_PROBLEME = {
+    1: 1,
+    2: 1,
+    3: 1,
+    4: 1,
+    5: 1,
+    6: 1,
+    7: 1,
+    8: 1,
+    9: 1,
+    10: 1,
+    11: 1,
+}
 
 
 def get_quizzes_by_subject_and_type(base_dir):
@@ -243,6 +317,90 @@ def create_pdf_document(selected_bio_quizzes, selected_chimie_quizzes, output_pa
     print(f"Document PDF generat: {output_path}")
 
 
+def select_quizzes_with_weights(all_quizzes_list, num_needed, weights):
+    """
+    Selectează un număr specific de grile dintr-o listă generală,
+    ținând cont de ponderile specificate pentru fiecare capitol.
+
+    Args:
+        all_quizzes_list (list): O listă de dicționare quiz_info din care să selectezi.
+        num_needed (int): Numărul total de grile de selectat.
+        weights (dict): Dicționar de ponderi {chapter_number: weight}.
+                        Capitolele fără pondere explicită vor avea ponderea 1.0.
+
+    Returns:
+        list: O listă de quiz_info selectate, unice și ponderate.
+    """
+    # Grupează grilele pe capitole
+    quizzes_by_chapter = {}
+    for quiz in all_quizzes_list:
+        chapter_num = quiz["chapter_number"]
+        if chapter_num not in quizzes_by_chapter:
+            quizzes_by_chapter[chapter_num] = []
+        quizzes_by_chapter[chapter_num].append(quiz)
+
+    selection_pool_chapters = []  # Lista de capitole din care vom extrage aleatoriu
+
+    # Construiește "pool-ul" de selecție a capitolelor, ponderat
+    for chapter_num, quizzes_in_chapter in quizzes_by_chapter.items():
+        weight = weights.get(chapter_num, 1.0)
+        # Adaugă capitolul de `weight * 10` ori (sau un factor similar) în pool.
+        # Factorul 10 este pentru a da o granulație suficientă la ponderi precum 0.5.
+        if quizzes_in_chapter:  # Asigură-te că sunt grile în capitol
+            for _ in range(int(weight * 10)):
+                selection_pool_chapters.append(chapter_num)
+
+    if not selection_pool_chapters:
+        print(
+            "Avertisment: Pool-ul de selecție capitole este gol. Nu se pot extrage grile.")
+        return []
+
+    selected_quizzes_unique = []
+    selected_quiz_paths = set()  # Pentru a asigura unicitatea grilelor selectate
+
+    attempts = 0
+    max_attempts = num_needed * 10 + 200  # Creștem numărul maxim de încercări
+
+    while len(selected_quizzes_unique) < num_needed and attempts < max_attempts:
+        attempts += 1
+        # Alege un capitol din pool-ul ponderat
+        chosen_chapter_num = random.choice(selection_pool_chapters)
+
+        quizzes_from_chosen_chapter = quizzes_by_chapter.get(
+            chosen_chapter_num, [])
+
+        # Filtrăm grilele deja selectate din capitolul curent pentru a nu le alege din nou
+        available_in_chapter = [
+            q for q in quizzes_from_chosen_chapter if q["path"] not in selected_quiz_paths
+        ]
+
+        if not available_in_chapter:
+            # Nu mai sunt grile unice disponibile în acest capitol.
+            # Încercăm să eliminăm acest capitol din pool pentru a nu-l mai alege.
+            # Aceasta este o operație costisitoare, dar necesară dacă pool-ul e mare.
+            selection_pool_chapters = [
+                c for c in selection_pool_chapters if c != chosen_chapter_num
+            ]
+            if not selection_pool_chapters:
+                # Nu mai sunt capitole din care să extragem grile unice
+                print(
+                    f"Avertisment: Nu mai sunt grile unice disponibile în niciun capitol pentru a atinge numărul necesar ({num_needed}). S-au găsit doar {len(selected_quizzes_unique)}.")
+                break  # Ieșim din bucla while
+            continue
+
+        # Alege o grilă aleatorie din cele rămase unice din capitolul ales
+        quiz_candidate = random.choice(available_in_chapter)
+
+        selected_quizzes_unique.append(quiz_candidate)
+        selected_quiz_paths.add(quiz_candidate["path"])
+
+    if len(selected_quizzes_unique) < num_needed:
+        print(
+            f"Avertisment: Nu s-au putut selecta {num_needed} grile unice cu ponderile și grilele disponibile. S-au găsit doar {len(selected_quizzes_unique)}.")
+
+    return selected_quizzes_unique
+
+
 def generate_simulation():
     """Generează o simulare conform specificațiilor."""
     all_quizzes = get_quizzes_by_subject_and_type(QUIZ_BASE_DIR)
@@ -251,6 +409,7 @@ def generate_simulation():
     chimie_teorie_quizzes = all_quizzes["chimie"]["teorie"]
     chimie_probleme_quizzes = all_quizzes["chimie"]["probleme"]
 
+    # --- Validări inițiale (rămân la fel) ---
     if len(bio_quizzes) < NUM_BIO_QUIZZES:
         print(
             f"Eroare: Nu sunt suficiente grile de biologie ({len(bio_quizzes)} disponibile, necesare {NUM_BIO_QUIZZES}).")
@@ -264,17 +423,39 @@ def generate_simulation():
             f"Eroare: Nu sunt suficiente grile de chimie (probleme) ({len(chimie_probleme_quizzes)} disponibile, necesare {NUM_CHIMIE_PROBLEME_QUIZZES}).")
         return
 
-    selected_bio = random.sample(bio_quizzes, NUM_BIO_QUIZZES)
-    selected_chimie_teorie = random.sample(
-        chimie_teorie_quizzes, NUM_CHIMIE_TEORIE_QUIZZES)
-    selected_chimie_probleme = random.sample(
-        chimie_probleme_quizzes, NUM_CHIMIE_PROBLEME_QUIZZES)
+    # --- Selecția grilelor folosind ponderi ---
+    print(f"Selecționez {NUM_BIO_QUIZZES} grile de biologie cu ponderi...")
+    selected_bio = select_quizzes_with_weights(
+        bio_quizzes, NUM_BIO_QUIZZES, BIOLOGY_CHAPTER_WEIGHTS
+    )
+    if len(selected_bio) < NUM_BIO_QUIZZES:
+        print(
+            f"ATENȚIE: Nu s-au putut selecta toate grilele de biologie dorite cu ponderi. S-au obținut doar {len(selected_bio)}.")
+
+    print(
+        f"Selecționez {NUM_CHIMIE_TEORIE_QUIZZES} grile de chimie (teorie) cu ponderi...")
+    selected_chimie_teorie = select_quizzes_with_weights(
+        chimie_teorie_quizzes, NUM_CHIMIE_TEORIE_QUIZZES, CHEMISTRY_CHAPTER_WEIGHTS_TEORIE
+    )
+    if len(selected_chimie_teorie) < NUM_CHIMIE_TEORIE_QUIZZES:
+        print(
+            f"ATENȚIE: Nu s-au putut selecta toate grilele de chimie (teorie) dorite cu ponderi. S-au obținut doar {len(selected_chimie_teorie)}.")
+
+    print(
+        f"Selecționez {NUM_CHIMIE_PROBLEME_QUIZZES} grile de chimie (probleme) cu ponderi...")
+    selected_chimie_probleme = select_quizzes_with_weights(
+        chimie_probleme_quizzes, NUM_CHIMIE_PROBLEME_QUIZZES, CHEMISTRY_CHAPTER_WEIGHTS_PROBLEME
+    )
+    if len(selected_chimie_probleme) < NUM_CHIMIE_PROBLEME_QUIZZES:
+        print(
+            f"ATENȚIE: Nu s-au putut selecta toate grilele de chimie (probleme) dorite cu ponderi. S-au obținut doar {len(selected_chimie_probleme)}.")
 
     selected_bio_quizzes = selected_bio
     selected_chimie_combined = selected_chimie_teorie + selected_chimie_probleme
+    # Amestecă grilele de chimie (teorie și probleme)
     random.shuffle(selected_chimie_combined)
 
-    # Colectează informații pentru fișierul TXT, separate pe subiecte
+    # --- Generare fișier TXT cu detalii (rămâne la fel) ---
     bio_map = {}
     for quiz in selected_bio_quizzes:
         chapter = quiz["chapter_number"]
@@ -298,7 +479,7 @@ def generate_simulation():
         chapter_quiz_map_lines.append(
             f"cap{chapter} -> grila {', '.join(map(str, quizzes_in_chapter))}")
 
-    chapter_quiz_map_lines.append("")  # Linie goală pentru spațiere
+    chapter_quiz_map_lines.append("")
     chapter_quiz_map_lines.append("CHIMIE")
     for chapter in sorted(chimie_map.keys()):
         quizzes_in_chapter = sorted(chimie_map[chapter])
@@ -317,6 +498,7 @@ def generate_simulation():
             f.write(line + "\n")
     print(f"Fișier TXT generat: {txt_output_path}")
 
+    # --- Generare documente Word și PDF (rămâne la fel) ---
     word_output_path = os.path.join(
         OUTPUT_SIMULATION_DIR, f"{simulation_name}.docx")
     create_word_document(selected_bio_quizzes, selected_chimie_combined,
