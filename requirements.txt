@@ -1,0 +1,8 @@
+python-docx
+reportlab
+pymupdf
+opencv-python
+pytesseract
+pillow
+lxml
+numpy

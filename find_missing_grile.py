@@ -71,5 +71,5 @@ if __name__ == "__main__":
 
     for folder_path in folders:
         folder = Path(folder_path)
-        print(f"\n=== Procesăm folderul: {folder} ===")
+        print(f"\n=== Se proceseaza folderul: {folder} ===")
         find_missing_numbers(folder)
