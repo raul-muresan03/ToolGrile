@@ -11,91 +11,10 @@ from reportlab.platypus import Image as ReportLabImage
 import shutil
 
 
-QUIZ_BASE_DIR = "final"  # Directorul rădăcină care conține "bio" și "chimie"
-# Directorul unde vor fi salvate simulările
-OUTPUT_SIMULATION_DIR = "simulari_generate"
-BAREM_BASE_DIR = "baremuri"
+import settings
 
-# Criterii de selecție
-NUM_BIO_QUIZZES = 35
-NUM_CHIMIE_TEORIE_QUIZZES = 10
-NUM_CHIMIE_PROBLEME_QUIZZES = 5
+# Constants are now imported from settings.py
 
-# bio
-# cap1_corpul_uman_celula
-# cap2_oasele_articulatiile
-# cap3_tesuturi_excitabile
-# cap4_sistemul_nervos
-# cap5_organe_de_simt
-# cap6_sistemul_endocrin_metabolism
-# cap7_sangele
-# cap8_sistemul_circulator
-# cap9_sistemul_respirator
-# cap10_sistemul_digestiv
-# cap11_sistemul_urinar
-# cap12_sistemul_reproducator
-# cap13_intrebari_asociative_recap
-BIOLOGY_CHAPTER_WEIGHTS = {
-    # 1: 0,
-    # 2: 0,
-    # 3: 0,
-    # 4: 0,
-    # 5: 0,
-    # 6: 0,
-    # 7: 0,
-    # 8: 0,
-    # 9: 0,
-    # 10: 0,
-    # 11: 0,
-    # 12: 0,
-    # 13: 1,
-
-    # Dacă un capitol nu este listat, va avea ponderea implicită 1.0.
-    # 1 - basic, 0.5 - sanse la jumatate, 2 - sanse duble
-}
-
-# ----------------------------------------
-
-# chimie
-# cap1_solutii_acizi_baze
-# cap2_compozitia_structura_compusilor_organici
-# cap3_compusi_hidroxilici
-# cap4_amine
-# cap5_aldehide_cetone
-# cap6_acizi_carboxilici
-# cap7_proteine
-# cap8_glucide
-# cap9_medicamente_droguri
-# cap10_izomerie
-# cap11_grile_asociative_recap
-
-CHEMISTRY_CHAPTER_WEIGHTS_TEORIE = {
-    1: 1,
-    2: 1,
-    3: 1,
-    4: 1,
-    5: 1,
-    6: 1,
-    7: 1,
-    8: 1,
-    9: 1,
-    10: 1,
-    11: 1,
-}
-
-CHEMISTRY_CHAPTER_WEIGHTS_PROBLEME = {
-    1: 1,
-    2: 1,
-    3: 1,
-    4: 1,
-    5: 1,
-    6: 1,
-    7: 1,
-    8: 1,
-    9: 1,
-    10: 1,
-    11: 1,
-}
 
 
 def get_quizzes_by_subject_and_type(base_dir):
@@ -380,37 +299,37 @@ def select_quizzes_with_weights(all_quizzes_list, num_needed, weights):
 
 def generate_simulation():
     """Generează o simulare conform specificațiilor."""
-    all_quizzes = get_quizzes_by_subject_and_type(QUIZ_BASE_DIR)
+    all_quizzes = get_quizzes_by_subject_and_type(settings.QUIZ_INPUT_DIR)
 
     bio_quizzes = all_quizzes["biologie"]["teorie"]
     chimie_teorie_quizzes = all_quizzes["chimie"]["teorie"]
     chimie_probleme_quizzes = all_quizzes["chimie"]["probleme"]
 
-    if len(bio_quizzes) < NUM_BIO_QUIZZES:
-        print(f"Eroare: Nu sunt suficiente grile de biologie ({len(bio_quizzes)} disponibile, necesare {NUM_BIO_QUIZZES}).")
+    if len(bio_quizzes) < settings.NUM_BIO_QUIZZES:
+        print(f"Eroare: Nu sunt suficiente grile de biologie ({len(bio_quizzes)} disponibile, necesare {settings.NUM_BIO_QUIZZES}).")
         return
     
-    if len(chimie_teorie_quizzes) < NUM_CHIMIE_TEORIE_QUIZZES:
-        print(f"Eroare: Nu sunt suficiente grile de chimie (teorie) ({len(chimie_teorie_quizzes)} disponibile, necesare {NUM_CHIMIE_TEORIE_QUIZZES}).")
+    if len(chimie_teorie_quizzes) < settings.NUM_CHIMIE_TEORIE_QUIZZES:
+        print(f"Eroare: Nu sunt suficiente grile de chimie (teorie) ({len(chimie_teorie_quizzes)} disponibile, necesare {settings.NUM_CHIMIE_TEORIE_QUIZZES}).")
         return
     
-    if len(chimie_probleme_quizzes) < NUM_CHIMIE_PROBLEME_QUIZZES:
-        print(f"Eroare: Nu sunt suficiente grile de chimie (probleme) ({len(chimie_probleme_quizzes)} disponibile, necesare {NUM_CHIMIE_PROBLEME_QUIZZES}).")
+    if len(chimie_probleme_quizzes) < settings.NUM_CHIMIE_PROBLEME_QUIZZES:
+        print(f"Eroare: Nu sunt suficiente grile de chimie (probleme) ({len(chimie_probleme_quizzes)} disponibile, necesare {settings.NUM_CHIMIE_PROBLEME_QUIZZES}).")
         return
 
-    print(f"Se selecteaza {NUM_BIO_QUIZZES} grile de biologie cu ponderi...")
-    selected_bio = select_quizzes_with_weights(bio_quizzes, NUM_BIO_QUIZZES, BIOLOGY_CHAPTER_WEIGHTS)
-    if len(selected_bio) < NUM_BIO_QUIZZES:
+    print(f"Se selecteaza {settings.NUM_BIO_QUIZZES} grile de biologie cu ponderi...")
+    selected_bio = select_quizzes_with_weights(bio_quizzes, settings.NUM_BIO_QUIZZES, settings.BIOLOGY_CHAPTER_WEIGHTS)
+    if len(selected_bio) < settings.NUM_BIO_QUIZZES:
         print(f"ATENȚIE: Nu s-au putut selecta toate grilele de biologie dorite cu ponderi. S-au obținut doar {len(selected_bio)}.")
 
-    print(f"Se selecteaza {NUM_CHIMIE_TEORIE_QUIZZES} grile de chimie (teorie) cu ponderi...")
-    selected_chimie_teorie = select_quizzes_with_weights(chimie_teorie_quizzes, NUM_CHIMIE_TEORIE_QUIZZES, CHEMISTRY_CHAPTER_WEIGHTS_TEORIE)
-    if len(selected_chimie_teorie) < NUM_CHIMIE_TEORIE_QUIZZES:
+    print(f"Se selecteaza {settings.NUM_CHIMIE_TEORIE_QUIZZES} grile de chimie (teorie) cu ponderi...")
+    selected_chimie_teorie = select_quizzes_with_weights(chimie_teorie_quizzes, settings.NUM_CHIMIE_TEORIE_QUIZZES, settings.CHEMISTRY_CHAPTER_WEIGHTS_TEORIE)
+    if len(selected_chimie_teorie) < settings.NUM_CHIMIE_TEORIE_QUIZZES:
         print(f"ATENȚIE: Nu s-au putut selecta toate grilele de chimie (teorie) dorite cu ponderi. S-au obținut doar {len(selected_chimie_teorie)}.")
 
-    print(f"Se selecteaza {NUM_CHIMIE_PROBLEME_QUIZZES} grile de chimie (probleme) cu ponderi...")
-    selected_chimie_probleme = select_quizzes_with_weights(chimie_probleme_quizzes, NUM_CHIMIE_PROBLEME_QUIZZES, CHEMISTRY_CHAPTER_WEIGHTS_PROBLEME)
-    if len(selected_chimie_probleme) < NUM_CHIMIE_PROBLEME_QUIZZES:
+    print(f"Se selecteaza {settings.NUM_CHIMIE_PROBLEME_QUIZZES} grile de chimie (probleme) cu ponderi...")
+    selected_chimie_probleme = select_quizzes_with_weights(chimie_probleme_quizzes, settings.NUM_CHIMIE_PROBLEME_QUIZZES, settings.CHEMISTRY_CHAPTER_WEIGHTS_PROBLEME)
+    if len(selected_chimie_probleme) < settings.NUM_CHIMIE_PROBLEME_QUIZZES:
         print(f"ATENȚIE: Nu s-au putut selecta toate grilele de chimie (probleme) dorite cu ponderi. S-au obținut doar {len(selected_chimie_probleme)}.")
 
     selected_bio_quizzes = selected_bio
@@ -445,13 +364,13 @@ def generate_simulation():
         quizzes_in_chapter = sorted(chimie_map[chapter])
         chapter_quiz_map_lines.append(f"cap{chapter} -> grila {', '.join(map(str, quizzes_in_chapter))}")
 
-    os.makedirs(OUTPUT_SIMULATION_DIR, exist_ok=True)
+    os.makedirs(settings.OUTPUT_SIMULATION_DIR, exist_ok=True)
 
     simulation_name = f"simulare_{random.randint(1000,9999)}"
-    current_simulation_output_dir = os.path.join(OUTPUT_SIMULATION_DIR, simulation_name)
+    current_simulation_output_dir = os.path.join(settings.OUTPUT_SIMULATION_DIR, simulation_name)
     os.makedirs(current_simulation_output_dir, exist_ok=True)
 
-    txt_output_path = os.path.join(OUTPUT_SIMULATION_DIR, f"{simulation_name}_detalii.txt")
+    txt_output_path = os.path.join(settings.OUTPUT_SIMULATION_DIR, f"{simulation_name}_detalii.txt")
     with open(txt_output_path, "w", encoding='utf-8') as f:
         f.write("Detalii Simulare:\n")
         for line in chapter_quiz_map_lines:
@@ -459,10 +378,10 @@ def generate_simulation():
     print(f"Fișier TXT generat: {txt_output_path}")
 
     # generare word + pdf
-    word_output_path = os.path.join(OUTPUT_SIMULATION_DIR, f"{simulation_name}.docx")
+    word_output_path = os.path.join(settings.OUTPUT_SIMULATION_DIR, f"{simulation_name}.docx")
     create_word_document(selected_bio_quizzes, selected_chimie_combined, word_output_path, chapter_quiz_map_lines)
 
-    pdf_output_path = os.path.join(OUTPUT_SIMULATION_DIR, f"{simulation_name}.pdf")
+    pdf_output_path = os.path.join(settings.OUTPUT_SIMULATION_DIR, f"{simulation_name}.pdf")
     create_pdf_document(selected_bio_quizzes, selected_chimie_combined, pdf_output_path, chapter_quiz_map_lines)
 
     print("\n Se copiaza baremele relevante...")
@@ -471,7 +390,7 @@ def generate_simulation():
     unique_chimie_chapters = set(quiz["chapter_number"] for quiz in selected_chimie_combined)
 
     # barem bio
-    bio_barem_source_dir = os.path.join(BAREM_BASE_DIR, "bio")
+    bio_barem_source_dir = os.path.join(settings.BAREM_DIR, "bio")
     for chapter_num in unique_bio_chapters:
         barem_filename = f"bio_cap{chapter_num}_barem.png"
         source_path = os.path.join(bio_barem_source_dir, barem_filename)
@@ -487,7 +406,7 @@ def generate_simulation():
             print(f"Baremul '{barem_filename}' nu a fost găsit la '{source_path}'.")
 
     # barem chimie
-    chimie_barem_source_dir = os.path.join(BAREM_BASE_DIR, "chimie")
+    chimie_barem_source_dir = os.path.join(settings.BAREM_DIR, "chimie")
     for chapter_num in unique_chimie_chapters:
         barem_filename = f"chimie_cap{chapter_num}_barem.png"
         source_path = os.path.join(chimie_barem_source_dir, barem_filename)
@@ -505,11 +424,11 @@ def generate_simulation():
     print("\nGenerarea simularii finalizata!")
 
 if __name__ == "__main__":
-    if not os.path.exists(QUIZ_BASE_DIR):
-        print(f"Eroare: Folderul pentru grile '{QUIZ_BASE_DIR}' nu există.")
+    if not os.path.exists(settings.QUIZ_INPUT_DIR):
+        print(f"Eroare: Folderul pentru grile '{settings.QUIZ_INPUT_DIR}' nu există.")
         print("Asigură-te că structura ta este 'final/bio/...' și 'final/chimie/...'.")
-    elif not os.path.exists(BAREM_BASE_DIR):
-        print(f"Eroare: Folderul pentru baremuri '{BAREM_BASE_DIR}' nu există.")
+    elif not os.path.exists(settings.BAREM_DIR):
+        print(f"Eroare: Folderul pentru baremuri '{settings.BAREM_DIR}' nu există.")
         print("Asigură-te că ai folderul 'baremuri' cu subfolderele 'bio' și 'chimie' ce conțin baremele.")
     else:
         generate_simulation()

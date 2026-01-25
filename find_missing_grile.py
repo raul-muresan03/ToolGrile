@@ -39,35 +39,27 @@ def find_missing_numbers(folder: Path):
     print(f"Lista grilelor lipsă a fost salvată în: {output_file}")
 
 if __name__ == "__main__":
-    folders = [
-        #bio
-        "final/bio/cap1_corpul_uman_celula/grile/done",
-        "final/bio/cap2_oasele_articulatiile/grile/done",
-        "final/bio/cap3_tesuturi_excitabile/grile/done",
-        "final/bio/cap4_sistemul_nervos/grile/done",
-        "final/bio/cap5_organe_de_simt/grile/done",
-        "final/bio/cap6_sistemul_endocrin_metabolism/grile/done",
-        "final/bio/cap7_sangele/grile/done",
-        "final/bio/cap8_sistemul_circulator/grile/done",
-        "final/bio/cap9_sistemul_respirator/grile/done",
-        "final/bio/cap10_sistemul_digestiv/grile/done",
-        "final/bio/cap11_sistemul_urinar/grile/done",
-        "final/bio/cap12_sistemul_reproducator/grile/done",
-        "final/bio/cap13_intrebari_asociative_recap/grile/done",
-
-        #chimie
-        "final/chimie/cap1_solutii_acizi_baze/grile/done",
-        "final/chimie/cap2_compozitia_structura_compusilor_organici/grile/done",
-        "final/chimie/cap3_compusi_hidroxilici/grile/done",
-        "final/chimie/cap4_amine/grile/done",
-        "final/chimie/cap5_aldehide_cetone/grile/done",
-        "final/chimie/cap6_acizi_carboxilici/grile/done",
-        "final/chimie/cap7_proteine/grile/done",
-        "final/chimie/cap8_glucide/grile/done",
-        "final/chimie/cap9_medicamente_droguri/grile/done",
-        "final/chimie/cap10_izomerie/grile/done",
-        "final/chimie/cap11_grile_asociative_recap/grile/done",
-    ]
+    import settings
+    
+    # Use dynamic traversal instead of hardcoded list
+    folders = []
+    
+    # Helper to find all 'done' folders
+    if os.path.exists(settings.QUIZ_INPUT_DIR):
+        for subject in os.listdir(settings.QUIZ_INPUT_DIR):
+            subject_path = os.path.join(settings.QUIZ_INPUT_DIR, subject)
+            if not os.path.isdir(subject_path): continue
+            
+            for chapter in os.listdir(subject_path):
+                chapter_path = os.path.join(subject_path, chapter)
+                if not os.path.isdir(chapter_path): continue
+                
+                done_path = os.path.join(chapter_path, "grile", "done")
+                if os.path.exists(done_path):
+                    folders.append(done_path)
+    
+    if not folders:
+        print(f"Nu s-au găsit foldere 'done' în {settings.QUIZ_INPUT_DIR}")
 
     for folder_path in folders:
         folder = Path(folder_path)

@@ -4,7 +4,7 @@ from PIL import Image
 import pytesseract
 import shutil
 from pathlib import Path
-
+import settings
 
 def rename_images_by_ocr(folder_path):
     print(f"Starting OCR-based renaming and moving in: {folder_path}")
@@ -13,12 +13,12 @@ def rename_images_by_ocr(folder_path):
 
     try:
         os.makedirs(done_folder_path, exist_ok=True)
-        print(f"Ensured 'done' folder exists at: {done_folder_path}")
+        # print(f"Ensured 'done' folder exists at: {done_folder_path}")
     except OSError as e:
         print(f"Error creating 'done' folder: {e}")
         return
 
-    number_pattern = re.compile(r'^\s*(\d+)\.\s*', re.MULTILINE)
+    number_pattern = re.compile(settings.OCR_GRID_NUMBER_PATTERN, re.MULTILINE)
 
     processed_files_count = 0
     renamed_and_moved_count = 0
@@ -26,104 +26,88 @@ def rename_images_by_ocr(folder_path):
     try:
         for filename in sorted(os.listdir(folder_path)):
             if filename == "done" or not filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp')):
-                print(f"Skipping non-image file or 'done' folder: {filename}")
+                # print(f"Skipping non-image file or 'done' folder: {filename}")
                 continue
 
             original_full_path = os.path.join(folder_path, filename)
-            print(f"\nProcessing: {filename}")
+            print(f"Processing: {filename}")
 
             try:
                 img = Image.open(original_full_path)
-
                 img = img.convert('L')
 
                 text = pytesseract.image_to_string(
-                    img, config='--psm 6', lang='ron+eng')
-
-                # print(f"Extracted text from {filename}:\n{text[:200]}...")
+                    img, config=settings.OCR_CONFIG_PSM6, lang=settings.OCR_LANG)
 
                 match = number_pattern.search(text)
 
                 if match:
-                    grid_number = match.group(1)  # Extrage numărul
-                    # Noul nume al fisierului (asumand .png)
+                    grid_number = match.group(1)
                     new_filename = f"{grid_number}.png"
+                    destination_full_path = os.path.join(done_folder_path, new_filename)
 
-                    # Calea completă pentru noul fișier în folderul 'done'
-                    destination_full_path = os.path.join(
-                        done_folder_path, new_filename)
-
-                    # Verifică dacă noul nume există deja în folderul 'done'
                     if os.path.exists(destination_full_path):
-                        print(
-                            f"Warning: Destination filename '{new_filename}' already exists in 'done' folder. Skipping {filename}.")
+                        print(f"Warning: Destination '{new_filename}' already exists in 'done'. Skipping {filename}.")
                     else:
-                        # Mută și redenumește fișierul
                         shutil.move(original_full_path, destination_full_path)
-                        print(
-                            f"Renamed and moved: {filename} -> {new_filename} in 'done' folder.")
+                        print(f"  Renamed and moved: {filename} -> {new_filename}")
                         renamed_and_moved_count += 1
                 else:
-                    print(
-                        f"No grid number found in {filename} using pattern. File remains in original folder.")
+                    print(f"  No grid number found in {filename}. File remains.")
 
             except pytesseract.TesseractNotFoundError:
-                print(
-                    "ERROR: Tesseract is not installed or not in your PATH. Please install it.")
+                print("ERROR: Tesseract is not installed or not in your PATH.")
                 return
             except Exception as e:
                 print(f"Error processing {filename}: {e}")
 
             processed_files_count += 1
 
-    except FileNotFoundError:
-        print(f"Error: The folder path does not exist: {folder_path}")
-        return
-    except PermissionError:
-        print(f"Error: Permission denied to access folder: {folder_path}")
-        return
     except Exception as e:
-        print(f"An unexpected error occurred while listing directory: {e}")
+        print(f"An unexpected error occurred: {e}")
         return
 
-    print(f"\n--- Renaming and Moving process finished ---")
-    print(f"Total files processed: {processed_files_count}")
-    print(f"Total files renamed and moved: {renamed_and_moved_count}")
-    print(
-        f"Files that could not be processed/renamed/moved: {processed_files_count - renamed_and_moved_count}")
-
-folders = [
-    # bio
-    # "C:\\proiecte_personale\\ToolGrile\\final\\bio\\cap1_corpul_uman_celula\\grile",
-    # "C:\\proiecte_personale\\ToolGrile\\final\\bio\\cap2_oasele_articulatiile\\grile",
-    # "C:\\proiecte_personale\\ToolGrile\\final\\bio\\cap3_tesuturi_excitabile\\grile",
-    # "C:\\proiecte_personale\\ToolGrile\\final\\bio\\cap4_sistemul_nervos\\grile",
-    # "C:\\proiecte_personale\\ToolGrile\\final\\bio\\cap5_organe_de_simt\\grile",
-    # "C:\\proiecte_personale\\ToolGrile\\final\\bio\\cap6_sistemul_endocrin_metabolism\\grile",
-    # "C:\\proiecte_personale\\ToolGrile\\final\\bio\\cap7_sangele\\grile",
-    # "C:\\proiecte_personale\\ToolGrile\\final\\bio\\cap8_sistemul_circulator\\grile",
-    # "C:\\proiecte_personale\\ToolGrile\\final\\bio\\cap9_sistemul_respirator\\grile",
-    # "C:\\proiecte_personale\\ToolGrile\\final\\bio\\cap10_sistemul_digestiv\\grile",
-    # "C:\\proiecte_personale\\ToolGrile\\final\\bio\\cap11_sistemul_urinar\\grile",
-    # "C:\\proiecte_personale\\ToolGrile\\final\\bio\\cap12_sistemul_reproducator\\grile",
-    # "C:\\proiecte_personale\\ToolGrile\\final\\bio\\cap13_intrebari_asociative_recap\\grile",
-
-    # chimie
-    "C:\\proiecte_personale\\ToolGrile\\final\\chimie\\cap1_solutii_acizi_baze\\grile",
-    "C:\\proiecte_personale\\ToolGrile\\final\\chimie\\cap2_compozitia_structura_compusilor_organici\\grile",
-    "C:\\proiecte_personale\\ToolGrile\\final\\chimie\\cap3_compusi_hidroxilici\\grile",
-    "C:\\proiecte_personale\\ToolGrile\\final\\chimie\\cap4_amine\\grile",
-    "C:\\proiecte_personale\\ToolGrile\\final\\chimie\\cap5_aldehide_cetone\\grile",
-    "C:\\proiecte_personale\\ToolGrile\\final\\chimie\\cap6_acizi_carboxilici\\grile",
-    "C:\\proiecte_personale\\ToolGrile\\final\\chimie\\cap7_proteine\\grile",
-    "C:\\proiecte_personale\\ToolGrile\\final\\chimie\\cap8_glucide\\grile",
-    "C:\\proiecte_personale\\ToolGrile\\final\\chimie\\cap9_medicamente_droguri\\grile",
-    "C:\\proiecte_personale\\ToolGrile\\final\\chimie\\cap10_izomerie\\grile",
-    "C:\\proiecte_personale\\ToolGrile\\final\\chimie\\cap11_grile_asociative_recap\\grile",
-]
+    print(f"Folder finished. Processed: {processed_files_count}, Moved: {renamed_and_moved_count}")
 
 
-for folder_path in folders:
-    folder = Path(folder_path)
-    print(f"\n=== Procesăm folderul: {folder} ===")
-    rename_images_by_ocr(folder)
+def get_grile_folders(base_dir):
+    """
+    Traverse the directory structure to find all 'grile' folders.
+    Structure: base_dir / subject / chapter / grile
+    """
+    grile_folders = []
+    
+    if not os.path.exists(base_dir):
+        print(f"Error: Base directory '{base_dir}' does not exist.")
+        return []
+
+    # Iterate over subjects (bio, chimie)
+    for subject in os.listdir(base_dir):
+        subject_path = os.path.join(base_dir, subject)
+        if not os.path.isdir(subject_path):
+            continue
+        
+        # Iterate over chapters
+        for chapter in os.listdir(subject_path):
+            chapter_path = os.path.join(subject_path, chapter)
+            if not os.path.isdir(chapter_path):
+                continue
+            
+            # Check for 'grile' folder
+            grile_path = os.path.join(chapter_path, "grile")
+            if os.path.isdir(grile_path):
+                grile_folders.append(grile_path)
+                
+    return grile_folders
+
+if __name__ == "__main__":
+    folders = get_grile_folders(settings.QUIZ_INPUT_DIR)
+    
+    if not folders:
+        print(f"No 'grile' folders found in {settings.QUIZ_INPUT_DIR}")
+    else:
+        print(f"Found {len(folders)} folders to process.")
+        for folder_path in folders:
+            folder = Path(folder_path)
+            print(f"\n=== Processing folder: {folder} ===")
+            rename_images_by_ocr(folder)
