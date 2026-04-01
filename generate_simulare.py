@@ -9,7 +9,7 @@ from reportlab.lib.units import inch
 from reportlab.pdfgen import canvas
 from reportlab.platypus import Image as ReportLabImage
 import shutil
-import config
+from config import *
 
 def get_quizzes_by_subject_and_type(base_dir):
     """
