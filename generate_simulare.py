@@ -2,101 +2,14 @@ import os
 import random
 import re
 from docx import Document
-from docx.shared import Inches, Pt  # Pt pentru dimensiunea fontului
-from docx.enum.text import WD_ALIGN_PARAGRAPH  # Pentru alinierea textului
+from docx.shared import Inches, Pt  
+from docx.enum.text import WD_ALIGN_PARAGRAPH  
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import inch
 from reportlab.pdfgen import canvas
 from reportlab.platypus import Image as ReportLabImage
 import shutil
-
-
-QUIZ_BASE_DIR = "final"  # Directorul rădăcină care conține "bio" și "chimie"
-# Directorul unde vor fi salvate simulările
-OUTPUT_SIMULATION_DIR = "simulari_generate"
-BAREM_BASE_DIR = "baremuri"
-
-# Criterii de selecție
-NUM_BIO_QUIZZES = 35
-NUM_CHIMIE_TEORIE_QUIZZES = 10
-NUM_CHIMIE_PROBLEME_QUIZZES = 5
-
-# bio
-# cap1_corpul_uman_celula
-# cap2_oasele_articulatiile
-# cap3_tesuturi_excitabile
-# cap4_sistemul_nervos
-# cap5_organe_de_simt
-# cap6_sistemul_endocrin_metabolism
-# cap7_sangele
-# cap8_sistemul_circulator
-# cap9_sistemul_respirator
-# cap10_sistemul_digestiv
-# cap11_sistemul_urinar
-# cap12_sistemul_reproducator
-# cap13_intrebari_asociative_recap
-BIOLOGY_CHAPTER_WEIGHTS = {
-    # 1: 0,
-    # 2: 0,
-    # 3: 0,
-    # 4: 0,
-    # 5: 0,
-    # 6: 0,
-    # 7: 0,
-    # 8: 0,
-    # 9: 0,
-    # 10: 0,
-    # 11: 0,
-    # 12: 0,
-    # 13: 1,
-
-    # Dacă un capitol nu este listat, va avea ponderea implicită 1.0.
-    # 1 - basic, 0.5 - sanse la jumatate, 2 - sanse duble
-}
-
-# ----------------------------------------
-
-# chimie
-# cap1_solutii_acizi_baze
-# cap2_compozitia_structura_compusilor_organici
-# cap3_compusi_hidroxilici
-# cap4_amine
-# cap5_aldehide_cetone
-# cap6_acizi_carboxilici
-# cap7_proteine
-# cap8_glucide
-# cap9_medicamente_droguri
-# cap10_izomerie
-# cap11_grile_asociative_recap
-
-CHEMISTRY_CHAPTER_WEIGHTS_TEORIE = {
-    1: 1,
-    2: 1,
-    3: 1,
-    4: 1,
-    5: 1,
-    6: 1,
-    7: 1,
-    8: 1,
-    9: 1,
-    10: 1,
-    11: 1,
-}
-
-CHEMISTRY_CHAPTER_WEIGHTS_PROBLEME = {
-    1: 1,
-    2: 1,
-    3: 1,
-    4: 1,
-    5: 1,
-    6: 1,
-    7: 1,
-    8: 1,
-    9: 1,
-    10: 1,
-    11: 1,
-}
-
+import config
 
 def get_quizzes_by_subject_and_type(base_dir):
     """
@@ -104,7 +17,7 @@ def get_quizzes_by_subject_and_type(base_dir):
     clasificându-le după subiect și tip (teorie/probleme), conform noii structuri.
     """
     quizzes = {
-        # Vom pune toate grilele bio în "teorie"
+
         "biologie": {"teorie": [], "probleme": []},
         "chimie": {"teorie": [], "probleme": []},
     }
@@ -135,7 +48,7 @@ def get_quizzes_by_subject_and_type(base_dir):
             if not os.path.isdir(chapter_folder_path):
                 continue
 
-            match_chapter = re.match(r"cap(\d+)_.*", chapter_folder_name)       #regex pentru numele folderelor unde se afla grilele (pe capitole)
+            match_chapter = re.match(r"cap(\d+)_.*", chapter_folder_name)       
             if not match_chapter:
                 continue
 
@@ -146,7 +59,6 @@ def get_quizzes_by_subject_and_type(base_dir):
             if not os.path.exists(done_folder_path):
                 continue
 
-            # Colectează grilele de TEORIE
             for quiz_filename in os.listdir(done_folder_path):
                 if quiz_filename.lower().endswith(".png"):
                     quiz_path = os.path.join(done_folder_path, quiz_filename)
@@ -166,7 +78,6 @@ def get_quizzes_by_subject_and_type(base_dir):
 
                     quizzes[current_subject]["teorie"].append(quiz_info)
 
-            # Colectează grilele de PROBLEME (doar pentru chimie)
             if current_subject == "chimie":
                 pb_folder_path = os.path.join(done_folder_path, "pb")
                 if os.path.exists(pb_folder_path) and os.path.isdir(pb_folder_path):
@@ -197,7 +108,6 @@ def get_quizzes_by_subject_and_type(base_dir):
 
     return quizzes
 
-
 def create_word_document(selected_bio_quizzes, selected_chimie_quizzes, output_path, chapter_quiz_map_lines):
     """Generează un document Word cu imaginile selectate, ordonate după subiect."""
     document = Document()
@@ -209,12 +119,11 @@ def create_word_document(selected_bio_quizzes, selected_chimie_quizzes, output_p
             document.add_paragraph(
                 f"Eroare la adăugarea imaginii {quiz_info['path']}: {e}")
 
-    # Adaugă delimitatorul '-'
     delimiter_paragraph = document.add_paragraph('-')
-    delimiter_paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER  # Centrează delimitatorul
+    delimiter_paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER  
     delimiter_paragraph.runs[0].font.size = Pt(
-        24)  # Mărește fontul pentru vizibilitate
-    document.add_page_break()  # Asigură-te că secțiunea de chimie începe pe o pagină nouă
+        24)  
+    document.add_page_break()  
 
     start_num_chimie = len(selected_bio_quizzes)
     for i, quiz_info in enumerate(selected_chimie_quizzes):
@@ -227,7 +136,6 @@ def create_word_document(selected_bio_quizzes, selected_chimie_quizzes, output_p
     document.save(output_path)
     print(f"Document Word generat: {output_path}")
 
-
 def create_pdf_document(selected_bio_quizzes, selected_chimie_quizzes, output_path, chapter_quiz_map_lines):
     """
     Generează un document PDF cu imaginile selectate, respectând ordinea și delimitarea
@@ -236,19 +144,15 @@ def create_pdf_document(selected_bio_quizzes, selected_chimie_quizzes, output_pa
     c = canvas.Canvas(output_path, pagesize=A4)
     width, height = A4
 
-    # Adaugă informațiile din fișierul TXT la începutul documentului PDF
     textobject = c.beginText()
     textobject.setTextOrigin(inch, height - inch)
     textobject.setFont("Helvetica", 12)
-    # c.drawText(textobject)
 
-    # Poziție de start pentru imagini, sub textul inițial
     y_position = height - (2 * inch)
     margin = 0.5 * inch
 
-    # Funcție ajutătoare pentru adăugarea unei grile
     def add_quiz_to_pdf(quiz_info, current_y, quiz_idx):
-        nonlocal c, y_position  # 'nonlocal' pentru a modifica variabilele din scope-ul exterior
+        nonlocal c, y_position  
         try:
             img_path = quiz_info["path"]
             temp_img = ReportLabImage(img_path)
@@ -260,21 +164,20 @@ def create_pdf_document(selected_bio_quizzes, selected_chimie_quizzes, output_pa
                 img_width *= scale_factor
                 img_height *= scale_factor
 
-            # Adaugă numărul grilei deasupra imaginii
             c.setFont("Helvetica-Bold", 10)
-            current_y -= 0.3 * inch  # Spațiu pentru numărul grilei
+            current_y -= 0.3 * inch  
 
-            if current_y - img_height < margin:  # Verifică dacă imaginea încape pe pagina curentă
+            if current_y - img_height < margin:  
                 c.showPage()
-                y_position = height - inch  # Resetează poziția Y pe pagina nouă
+                y_position = height - inch  
                 current_y = y_position
-                # Resetează fontul după schimbarea paginii
+
                 c.setFont("Helvetica-Bold", 10)
                 current_y -= 0.3 * inch
 
             c.drawImage(img_path, margin, current_y - img_height,
                         width=img_width, height=img_height)
-            current_y -= (img_height + 0.2 * inch)  # Spațiu între imagini
+            current_y -= (img_height + 0.2 * inch)  
 
         except Exception as e:
             print(
@@ -284,24 +187,21 @@ def create_pdf_document(selected_bio_quizzes, selected_chimie_quizzes, output_pa
             current_y -= (0.5 * inch)
         return current_y
 
-    # Adaugă grilele de Biologie
     c.setFont("Helvetica-Bold", 14)
-    y_position -= 0.5 * inch  # Spațiu după titlu
+    y_position -= 0.5 * inch  
     for i, quiz_info in enumerate(selected_bio_quizzes):
         y_position = add_quiz_to_pdf(quiz_info, y_position, i + 1)
 
-    # Adaugă delimitatorul '-'
-    if y_position - 0.5 * inch < margin:  # Verifică dacă delimitatorul încape
+    if y_position - 0.5 * inch < margin:  
         c.showPage()
         y_position = height - inch
     c.setFont("Helvetica-Bold", 24)
     c.drawCentredString(width / 2, y_position - 0.3 * inch, "-")
-    y_position -= 0.5 * inch  # Spațiu după delimitator
-    c.showPage()  # Trece la o pagină nouă pentru chimie
+    y_position -= 0.5 * inch  
+    c.showPage()  
 
-    # Adaugă grilele de Chimie
     c.setFont("Helvetica-Bold", 14)
-    y_position -= 0.5 * inch  # Spațiu după titlu
+    y_position -= 0.5 * inch  
     start_num_chimie = len(selected_bio_quizzes)
     for i, quiz_info in enumerate(selected_chimie_quizzes):
         y_position = add_quiz_to_pdf(
@@ -309,7 +209,6 @@ def create_pdf_document(selected_bio_quizzes, selected_chimie_quizzes, output_pa
 
     c.save()
     print(f"Document PDF generat: {output_path}")
-
 
 def select_quizzes_with_weights(all_quizzes_list, num_needed, weights):
     """
@@ -325,7 +224,7 @@ def select_quizzes_with_weights(all_quizzes_list, num_needed, weights):
     Returns:
         list: O listă de quiz_info selectate, unice și ponderate.
     """
-    # Grupează grilele pe capitole
+
     quizzes_by_chapter = {}
     for quiz in all_quizzes_list:
         chapter_num = quiz["chapter_number"]
@@ -333,7 +232,7 @@ def select_quizzes_with_weights(all_quizzes_list, num_needed, weights):
             quizzes_by_chapter[chapter_num] = []
         quizzes_by_chapter[chapter_num].append(quiz)
 
-    selection_pool_chapters = []  #lista de capitole din care vom extrage random
+    selection_pool_chapters = []  
 
     for chapter_num, quizzes_in_chapter in quizzes_by_chapter.items():
         weight = weights.get(chapter_num, 1.0)
@@ -377,7 +276,6 @@ def select_quizzes_with_weights(all_quizzes_list, num_needed, weights):
 
     return selected_quizzes_unique
 
-
 def generate_simulation():
     """Generează o simulare conform specificațiilor."""
     all_quizzes = get_quizzes_by_subject_and_type(QUIZ_BASE_DIR)
@@ -389,11 +287,11 @@ def generate_simulation():
     if len(bio_quizzes) < NUM_BIO_QUIZZES:
         print(f"Eroare: Nu sunt suficiente grile de biologie ({len(bio_quizzes)} disponibile, necesare {NUM_BIO_QUIZZES}).")
         return
-    
+
     if len(chimie_teorie_quizzes) < NUM_CHIMIE_TEORIE_QUIZZES:
         print(f"Eroare: Nu sunt suficiente grile de chimie (teorie) ({len(chimie_teorie_quizzes)} disponibile, necesare {NUM_CHIMIE_TEORIE_QUIZZES}).")
         return
-    
+
     if len(chimie_probleme_quizzes) < NUM_CHIMIE_PROBLEME_QUIZZES:
         print(f"Eroare: Nu sunt suficiente grile de chimie (probleme) ({len(chimie_probleme_quizzes)} disponibile, necesare {NUM_CHIMIE_PROBLEME_QUIZZES}).")
         return
@@ -458,7 +356,6 @@ def generate_simulation():
             f.write(line + "\n")
     print(f"Fișier TXT generat: {txt_output_path}")
 
-    # generare word + pdf
     word_output_path = os.path.join(OUTPUT_SIMULATION_DIR, f"{simulation_name}.docx")
     create_word_document(selected_bio_quizzes, selected_chimie_combined, word_output_path, chapter_quiz_map_lines)
 
@@ -470,7 +367,6 @@ def generate_simulation():
     unique_bio_chapters = set(quiz["chapter_number"] for quiz in selected_bio_quizzes)
     unique_chimie_chapters = set(quiz["chapter_number"] for quiz in selected_chimie_combined)
 
-    # barem bio
     bio_barem_source_dir = os.path.join(BAREM_BASE_DIR, "bio")
     for chapter_num in unique_bio_chapters:
         barem_filename = f"bio_cap{chapter_num}_barem.png"
@@ -486,7 +382,6 @@ def generate_simulation():
         else:
             print(f"Baremul '{barem_filename}' nu a fost găsit la '{source_path}'.")
 
-    # barem chimie
     chimie_barem_source_dir = os.path.join(BAREM_BASE_DIR, "chimie")
     for chapter_num in unique_chimie_chapters:
         barem_filename = f"chimie_cap{chapter_num}_barem.png"

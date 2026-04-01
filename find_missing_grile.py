@@ -26,7 +26,6 @@ def find_missing_numbers(folder: Path):
     else:
         print("Nu lipsesc numere între 1 și", maxim)
 
-    # Scriem rezultatul într-un fișier .txt
     output_file = folder / "missing_grile.txt"
     with open(output_file, "w", encoding="utf-8") as f:
         if missing:
@@ -40,7 +39,7 @@ def find_missing_numbers(folder: Path):
 
 if __name__ == "__main__":
     folders = [
-        #bio
+
         "final/bio/cap1_corpul_uman_celula/grile/done",
         "final/bio/cap2_oasele_articulatiile/grile/done",
         "final/bio/cap3_tesuturi_excitabile/grile/done",
@@ -55,7 +54,6 @@ if __name__ == "__main__":
         "final/bio/cap12_sistemul_reproducator/grile/done",
         "final/bio/cap13_intrebari_asociative_recap/grile/done",
 
-        #chimie
         "final/chimie/cap1_solutii_acizi_baze/grile/done",
         "final/chimie/cap2_compozitia_structura_compusilor_organici/grile/done",
         "final/chimie/cap3_compusi_hidroxilici/grile/done",
