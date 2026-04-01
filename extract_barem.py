@@ -1,7 +1,7 @@
 import cv2
 
 def extract_barem(selector):
-    if selector == 1:  # bio
+    if selector == 1:  
         for i in range(1, 14):
             img = cv2.imread(f"baremuri/bio/cap{i}_barem.png")
 
@@ -13,7 +13,6 @@ def extract_barem(selector):
             dilate = cv2.dilate(thresh, kernel, iterations=2)
             cv2.imwrite(f"temp_barem/bio/cap{i}_barem_dilate.png", dilate)
 
-            # find contours
             cnts = cv2.findContours(
                 dilate, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             cnts = cnts[0] if len(cnts) == 2 else cnts[1]
@@ -32,7 +31,7 @@ def extract_barem(selector):
             cv2.imwrite(f"temp_barem/bio/cap{i}_barem_temp.png", img)
             print(f"Gata cu pagina_{i}.png")
 
-    elif selector == 2:  # chimie
+    elif selector == 2:  
         for i in range(1, 12):
             img = cv2.imread(f"baremuri/chimie/cap{i}_barem.png")
 
@@ -44,7 +43,6 @@ def extract_barem(selector):
             dilate = cv2.dilate(thresh, kernel, iterations=2)
             cv2.imwrite(f"temp_barem/chimie/cap{i}_barem_dilate.png", dilate)
 
-            # find contours
             cnts = cv2.findContours(
                 dilate, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             cnts = cnts[0] if len(cnts) == 2 else cnts[1]
@@ -63,6 +61,5 @@ def extract_barem(selector):
             cv2.imwrite(f"temp_barem/chimie/cap{i}_barem_temp.png", img)
             print(f"Gata cu pagina_{i}.png")
 
-
 extract_barem(1)
-# extract_barem(2)      #nu merge pt ca sunt despartite de o linie neagra, nu de spatiu, ca la bio
+

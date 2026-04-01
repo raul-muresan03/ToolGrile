@@ -5,7 +5,6 @@ import pytesseract
 import shutil
 from pathlib import Path
 
-
 def rename_images_by_ocr(folder_path):
     print(f"Starting OCR-based renaming and moving in: {folder_path}")
 
@@ -40,25 +39,21 @@ def rename_images_by_ocr(folder_path):
                 text = pytesseract.image_to_string(
                     img, config='--psm 6', lang='ron+eng')
 
-                # print(f"Extracted text from {filename}:\n{text[:200]}...")
-
                 match = number_pattern.search(text)
 
                 if match:
-                    grid_number = match.group(1)  # Extrage numărul
-                    # Noul nume al fisierului (asumand .png)
+                    grid_number = match.group(1)  
+
                     new_filename = f"{grid_number}.png"
 
-                    # Calea completă pentru noul fișier în folderul 'done'
                     destination_full_path = os.path.join(
                         done_folder_path, new_filename)
 
-                    # Verifică dacă noul nume există deja în folderul 'done'
                     if os.path.exists(destination_full_path):
                         print(
                             f"Warning: Destination filename '{new_filename}' already exists in 'done' folder. Skipping {filename}.")
                     else:
-                        # Mută și redenumește fișierul
+
                         shutil.move(original_full_path, destination_full_path)
                         print(
                             f"Renamed and moved: {filename} -> {new_filename} in 'done' folder.")
@@ -93,22 +88,7 @@ def rename_images_by_ocr(folder_path):
         f"Files that could not be processed/renamed/moved: {processed_files_count - renamed_and_moved_count}")
 
 folders = [
-    # bio
-    # "C:\\proiecte_personale\\ToolGrile\\final\\bio\\cap1_corpul_uman_celula\\grile",
-    # "C:\\proiecte_personale\\ToolGrile\\final\\bio\\cap2_oasele_articulatiile\\grile",
-    # "C:\\proiecte_personale\\ToolGrile\\final\\bio\\cap3_tesuturi_excitabile\\grile",
-    # "C:\\proiecte_personale\\ToolGrile\\final\\bio\\cap4_sistemul_nervos\\grile",
-    # "C:\\proiecte_personale\\ToolGrile\\final\\bio\\cap5_organe_de_simt\\grile",
-    # "C:\\proiecte_personale\\ToolGrile\\final\\bio\\cap6_sistemul_endocrin_metabolism\\grile",
-    # "C:\\proiecte_personale\\ToolGrile\\final\\bio\\cap7_sangele\\grile",
-    # "C:\\proiecte_personale\\ToolGrile\\final\\bio\\cap8_sistemul_circulator\\grile",
-    # "C:\\proiecte_personale\\ToolGrile\\final\\bio\\cap9_sistemul_respirator\\grile",
-    # "C:\\proiecte_personale\\ToolGrile\\final\\bio\\cap10_sistemul_digestiv\\grile",
-    # "C:\\proiecte_personale\\ToolGrile\\final\\bio\\cap11_sistemul_urinar\\grile",
-    # "C:\\proiecte_personale\\ToolGrile\\final\\bio\\cap12_sistemul_reproducator\\grile",
-    # "C:\\proiecte_personale\\ToolGrile\\final\\bio\\cap13_intrebari_asociative_recap\\grile",
 
-    # chimie
     "C:\\proiecte_personale\\ToolGrile\\final\\chimie\\cap1_solutii_acizi_baze\\grile",
     "C:\\proiecte_personale\\ToolGrile\\final\\chimie\\cap2_compozitia_structura_compusilor_organici\\grile",
     "C:\\proiecte_personale\\ToolGrile\\final\\chimie\\cap3_compusi_hidroxilici\\grile",
@@ -121,7 +101,6 @@ folders = [
     "C:\\proiecte_personale\\ToolGrile\\final\\chimie\\cap10_izomerie\\grile",
     "C:\\proiecte_personale\\ToolGrile\\final\\chimie\\cap11_grile_asociative_recap\\grile",
 ]
-
 
 for folder_path in folders:
     folder = Path(folder_path)
