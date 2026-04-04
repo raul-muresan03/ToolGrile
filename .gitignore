@@ -26,14 +26,10 @@ env/
 
 .ipynb_checkpoints
 
-final/
-simulari_generate/
-baremuri/
-temp_barem/
-input_pdf/
-pdf2images/
-temp/
-grile_admitere_backup/
+data/
+docs/
+logs/
+outputs/
 
 *.png
 *.jpg
@@ -42,15 +38,10 @@ grile_admitere_backup/
 *.pdf
 *.docx
 
-missing_grile.txt
-*_detalii.txt
-
 Thumbs.db
 Desktop.ini
 .DS_Store
 
 .vscode/
 .idea/
-
-/to_ignore
 *.log
