@@ -1,6 +1,6 @@
 from pathlib import Path
 
-ROOT_DIR = Path(__file__).parent.parent
+ROOT_DIR = Path(__file__).parent.parent.parent
 DATA_DIR = ROOT_DIR / "data"
 RAW_DIR = DATA_DIR / "raw"
 TEMP_DIR = DATA_DIR / "temp"
@@ -15,8 +15,13 @@ MATH_CHAPTERS = {
     "algebra": PROCESSED_DIR / "algebra",
     "analiza": PROCESSED_DIR / "analiza",
     "geometrie": PROCESSED_DIR / "geometrie",
-    "trigonometrie": PROCESSED_DIR / "trigonometrie"
+    "trigonometrie": PROCESSED_DIR / "trigonometrie",
+    "subiecte_admitere_simulare": PROCESSED_DIR / "subiecte_admitere_simulare"
 }
 
 for path in [PAGES_DIR, PROCESSED_DIR, OUTPUT_DIR] + list(MATH_CHAPTERS.values()):
     path.mkdir(parents=True, exist_ok=True)
+
+
+BINARY_THRESHOLD = 240
+HPP_THRESHOLD = 0
