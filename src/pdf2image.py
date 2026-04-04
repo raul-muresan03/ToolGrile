@@ -1,15 +1,23 @@
 import fitz
-import os
+from configs.config import RAW_PDF_PATH, PAGES_DIR, DPI
 
-in_path = "input_pdf/culegere_bio_cluj.pdf"
-out_path = "pdf2images/bio"
-os.makedirs(out_path, exist_ok=True)
+def convert_pdf_to_images():
+    if not RAW_PDF_PATH.exists():
+        print(f"Error: PDF file not found at {RAW_PDF_PATH}")
+        return
 
-doc = fitz.open(in_path)
-for page_num in range(len(doc)):
-    page = doc.load_page(page_num)
-    pix = page.get_pixmap(dpi=300)
-    filename = f"pagina_{page_num + 1}.png"
-    pix.save(os.path.join(out_path, filename), "PNG")
+    print(f"Opening PDF: {RAW_PDF_PATH}")
+    doc = fitz.open(RAW_PDF_PATH)
+    
+    for page_num in range(len(doc)):
+        page = doc.load_page(page_num)
+        pix = page.get_pixmap(dpi=DPI)
+        
+        filename = PAGES_DIR / f"page_{page_num + 1:03d}.png"
+        pix.save(str(filename), "PNG")
+        print(f"Saved: {filename}")
 
-print("Imaginile au fost salvate in folderul:", out_path)
+    print(f"Conversion complete. Total pages: {len(doc)}")
+
+if __name__ == "__main__":
+    convert_pdf_to_images()

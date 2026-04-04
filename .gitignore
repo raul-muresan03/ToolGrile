@@ -30,6 +30,7 @@ data/
 docs/
 logs/
 outputs/
+GEMINI.md
 
 *.png
 *.jpg
