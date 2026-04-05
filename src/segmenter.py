@@ -7,6 +7,10 @@ def preprocess_image(image_path):
     original = cv2.imread(image_path)
     gray = cv2.cvtColor(original, cv2.COLOR_BGR2GRAY)
     _, binary = cv2.threshold(gray, BINARY_THRESHOLD, 255, cv2.THRESH_BINARY_INV)
+    
+    # kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (15, 1))
+    # binary = cv2.dilate(binary, kernel, iterations=1)
+    
     return original, binary
 
 
@@ -67,4 +71,15 @@ if __name__ == "__main__":
     # 4. Cut
     crop_and_save_segments(original, segments, "data/temp", 7)
 
-    # cv2.waitKey(0)
+    copy = original.copy()
+    width = copy.shape[1]
+    for i, (start_y, end_y) in enumerate(segments):
+        cv2.rectangle(copy, (0, start_y), (width, end_y), (0, 0, 255), 2)
+    
+    # cv2.namedWindow("Original", cv2.WINDOW_NORMAL)
+    cv2.namedWindow("Copy - BBOX", cv2.WINDOW_NORMAL)
+    
+    # cv2.imshow("Original", original)
+    cv2.imshow("Copy - BBOX", copy)
+
+    cv2.waitKey(0)
