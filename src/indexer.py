@@ -31,19 +31,16 @@ def extract_circle_ROIs(image_path):
     return ROI_list
 
 
-def extract_grid_numbers(image_path):
-    """
-    PASUL 2: OCR doar pe cercurile tăiate.
-    1. Obține imaginile cercurilor apelând `extract_circle_rois(image_path)`.
-    2. Parcurge fiecare minu-imagine de cerc dintr-o buclă `for`.
-    3. Apelează `pytesseract.image_to_string()`.
-       PONT: Pentru a citi un singur caracter sau cuvânt minuscul decupat complet de restul textului,
-             Tesseract funcționează perfect cu argumentul `--psm 10` sau `--psm 8`.
-    4. Curăță rezultatul primit cu re.sub(r'\\D', '', rezultat_ocr) - asta va păstra doar cifrele pure!
+def extract_quiz_numbers(image_path):
+    ROIs = extract_circle_ROIs(image_path)
+    numbers = []
+    for ROI in ROIs:
+        ocr_text = pytesseract.image_to_string(ROI, config='--psm 10')
+        clean_num = re.sub(r'\D', '', ocr_text)
+        numbers.append(clean_num)
 
-    Returnează: O listă cu string-uri sau int numerice pure. (Ex: ['482', '483', '484'])
-    """
-    pass
+    return numbers
+
 
 def rename_and_move_image(original_image_path, grid_numbers, destination_folder):
     """
@@ -69,11 +66,11 @@ if __name__ == "__main__":
     test_image_path = "data/temp/page_69_grid_1.png"
 
     # 1. Poți testa doar decuparea pentru început (Descomentează când îl implementezi):
-    circles = extract_circle_ROIs(test_image_path)
-    for i, c in enumerate(circles):
-        cv2.imshow(f"Cerc {i}", c)
-    cv2.waitKey(0)
+    # circles = extract_circle_ROIs(test_image_path)
+    # for i, c in enumerate(circles):
+        # cv2.imshow(f"Cerc {i}", c)
+    # cv2.waitKey(0)
 
     # 2. Testare cap-coadă
-    # numbers = extract_grid_numbers(test_image_path)
-    # print(f"Numere din cercuri gasite: {numbers}")
+    numbers = extract_quiz_numbers(test_image_path)
+    print(f"Numere din cercuri gasite: {numbers}")
