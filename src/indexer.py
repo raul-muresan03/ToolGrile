@@ -18,7 +18,7 @@ def extract_circle_ROIs(image_path):
         x, y, w, h = cv2.boundingRect(c)
         if w > MIN_CIRCLE_SIZE and h > MIN_CIRCLE_SIZE:
             aspect_ratio = float(w) / h
-            print(f"Found big contour at x={x}, y={y}, w={w}, h={h}, with Ratio: {aspect_ratio}")
+            # print(f"Found big contour at x={x}, y={y}, w={w}, h={h}, with Ratio: {aspect_ratio}")
             if ASPECT_RATIO_MIN < aspect_ratio < ASPECT_RATIO_MAX:
                 if x < MAX_CIRCLE_X:
                     # cv2.rectangle(bbox_img, (x, y), (x + w, y + h), (0, 0, 255), 5)
@@ -37,7 +37,8 @@ def extract_quiz_numbers(image_path):
     for ROI in ROIs:
         ocr_text = pytesseract.image_to_string(ROI, config='--psm 10')
         clean_num = re.sub(r'\D', '', ocr_text)
-        numbers.append(clean_num)
+        if clean_num:
+            numbers.append(clean_num)
 
     return numbers
 
@@ -55,28 +56,28 @@ def rename_and_move_image(original_image_path, grid_numbers, destination_folder)
 
     new_image_path = dest_folder / f"grid_{joined_numbers}.png"
     shutil.copy(original_image_path, new_image_path)
-    print(f"Succees: File moved to -> {new_image_path}")
+    # print(f"Succees: File moved to -> {new_image_path}")
 
 
 def process_all_images(source_folder):
-    """
-    Iterează prin toate imaginile .png din source_folder (ex: TEMP_DIR / "processed").
-    Pentru fiecare imagine:
-      1. Apelează extract_grid_numbers()
-      2. Dacă lista are elemente, în funcție de intervalul acelor numere, alege din MATH_CHAPTERS.
-      3. Apelează rename_and_move_image() trimițând folderul ales.
-    """
-    pass
+    source_images = Path(source_folder).glob("*.png")
+    test_dest = Path("data/temp/indexed_test")
+    for index, i in enumerate(source_images):
+        if index == 50:
+            break
+        quiz_numbers = extract_quiz_numbers(str(i))
+        rename_and_move_image(str(i), quiz_numbers, test_dest)
+
 
 if __name__ == "__main__":
-    test_image_path = "data/temp/page_69_grid_1.png"
+    # test_image_path = "data/temp/page_69_grid_1.png"
 
-    # 1. Poți testa doar decuparea pentru început (Descomentează când îl implementezi):
     # circles = extract_circle_ROIs(test_image_path)
     # for i, c in enumerate(circles):
         # cv2.imshow(f"Cerc {i}", c)
     # cv2.waitKey(0)
 
-    # 2. Testare cap-coadă
-    numbers = extract_quiz_numbers(test_image_path)
-    print(f"Numere din cercuri gasite: {numbers}")
+    # numbers = extract_quiz_numbers(test_image_path)
+    # print(f"Numbers found (from circles): {numbers}")
+
+    process_all_images("data/temp")
