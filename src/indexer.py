@@ -43,14 +43,20 @@ def extract_quiz_numbers(image_path):
 
 
 def rename_and_move_image(original_image_path, grid_numbers, destination_folder):
-    """
-    Construiește noul nume al fișierului unind membrii listei `grid_numbers`.
-    Exemplu: dacă grid_numbers = ['482', '483', '484'], noul nume trebuie să fie "grid_482_483_484.png"
-    Dacă are un singur număr, ex: ['15'], devine "grid_15.png".
+    dest_folder = Path(destination_folder)
+    dest_folder.mkdir(parents=True, exist_ok=True)
 
-    Mută/Copiază fișierul original de la `original_image_path` la destinația nouă.
-    """
-    pass
+    grid_numbers.sort(key=int)
+
+    if not grid_numbers:
+        joined_numbers = "unknown"
+    else:
+        joined_numbers = "_".join(grid_numbers)
+
+    new_image_path = dest_folder / f"grid_{joined_numbers}.png"
+    shutil.copy(original_image_path, new_image_path)
+    print(f"Succees: File moved to -> {new_image_path}")
+
 
 def process_all_images(source_folder):
     """
