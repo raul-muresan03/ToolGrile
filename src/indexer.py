@@ -75,4 +75,10 @@ if __name__ == "__main__":
     with Pool() as pool:
         pool.map(process_single_quiz, images)
 
+    indexed = len(list(INDEXED_QUIZZES_DIR.glob("*.png")))
+    unknowns = len(list((INDEXED_QUIZZES_DIR / "unknown_quizzes").glob("*.png")))
+
     print("Done!")
+    print(f"Total processed: {total_total}")
+    print(f"Successfully indexed: {indexed}")
+    print(f"Unknowns: {unknowns} (check subfolder)")
