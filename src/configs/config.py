@@ -2,11 +2,14 @@ from pathlib import Path
 
 ROOT_DIR = Path(__file__).parent.parent.parent
 DATA_DIR = ROOT_DIR / "data"
+OUTPUT_DIR = ROOT_DIR / "outputs"
+
 RAW_DIR = DATA_DIR / "raw"
 TEMP_DIR = DATA_DIR / "temp"
-PAGES_DIR = TEMP_DIR / "pages"
 PROCESSED_DIR = DATA_DIR / "processed"
-OUTPUT_DIR = ROOT_DIR / "outputs"
+
+PAGES_DIR = TEMP_DIR / "pages"
+QUIZES_DIR = TEMP_DIR / "quizes"
 
 RAW_PDF_PATH = RAW_DIR / "culegere_grile_utcn.pdf"
 
@@ -30,3 +33,5 @@ MIN_CIRCLE_SIZE = 80
 ASPECT_RATIO_MIN = 0.85
 ASPECT_RATIO_MAX = 1.15
 MAX_CIRCLE_X = 350
+
+MIN_CONTOUR_AREA = 10000
