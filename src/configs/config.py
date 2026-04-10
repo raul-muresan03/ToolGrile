@@ -9,7 +9,8 @@ TEMP_DIR = DATA_DIR / "temp"
 PROCESSED_DIR = DATA_DIR / "processed"
 
 PAGES_DIR = TEMP_DIR / "pages"
-QUIZES_DIR = TEMP_DIR / "quizes"
+RAW_QUIZZES_DIR = TEMP_DIR / "raw_quizzes"
+INDEXED_QUIZZES_DIR = TEMP_DIR / "indexed_quizzes"
 
 RAW_PDF_PATH = RAW_DIR / "culegere_grile_utcn.pdf"
 

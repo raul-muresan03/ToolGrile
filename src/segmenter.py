@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 from pathlib import Path
 from configs.config import *
+from multiprocessing import Pool
 
 def preprocess_image(image_path):
     original = cv2.imread(image_path)
@@ -17,9 +18,11 @@ def find_quiz_contours(binary):
         area = cv2.contourArea(c)
         if area > MIN_CONTOUR_AREA:
             filtered.append(c)
+
+    filtered.sort(key=lambda c: cv2.boundingRect(c)[1])
     return filtered
 
-def extract_and_save_quizes(original, binary, contours, output_dir, page_index):
+def extract_and_save_quizzes(original, binary, contours, output_dir, page_index):
     out_path = Path(output_dir)
     out_path.mkdir(parents=True, exist_ok=True)
 
@@ -30,11 +33,14 @@ def extract_and_save_quizes(original, binary, contours, output_dir, page_index):
         result = np.ones_like(original) * 255
         result[mask == 255] = original[mask == 255]
         crop = result[y:y+h, x:x+w]
-        cv2.imwrite(str(out_path / f"page_{page_index}_grid_{i+1}.png"), crop)
+        cv2.imwrite(str(out_path / f"page_{page_index:03d}_quiz_{i+1:03d}.png"), crop)
+
+def process_single_page(page_index):
+    image_path = str(PAGES_DIR / f"page_{page_index:03d}.png")
+    original, binary = preprocess_image(image_path)
+    contours = find_quiz_contours(binary)
+    extract_and_save_quizzes(original, binary, contours, RAW_QUIZZES_DIR, page_index)
 
 if __name__ == "__main__":
-    test_image_path = "data/temp/pages/page_070.png"
-
-    original, binary = preprocess_image(test_image_path)
-    contours = find_quiz_contours(binary)
-    extract_and_save_quizes(original, binary, contours, QUIZES_DIR, 70)
+    with Pool() as pool:
+        pool.map(process_single_page, range(7, 149))
