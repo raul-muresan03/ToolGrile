@@ -1,73 +1,30 @@
-import os
 import re
 from pathlib import Path
+from configs.config import MATH_CHAPTERS
 
-def find_missing_numbers(folder: Path):
-    pattern = re.compile(r"^(\d+)(?:\.\w+)?$")
-    nums = set()
+def get_numbers_from_filename(filename: str):
+    match = re.search(r'_quiz_([\d_]+)\.png$', filename)
+    if match:
+        numbers_str = match.group(1).split('_')
+        return [int(n) for n in numbers_str if n.isdigit()]
+    return []
 
-    for p in folder.iterdir():
-        if not p.is_file():
-            continue
-        m = pattern.match(p.name)
-        if m:
-            nums.add(int(m.group(1)))
+def validate_chapter(chapter_name: str, chapter_path: Path):
+    found = set()
+    for f in chapter_path.glob("*.png"):
+        found.update(get_numbers_from_filename(f.name))
 
-    if not nums:
-        print("Nu s-a găsit niciun fișier numerotat doar cu cifre.")
+    if not found:
+        print(f"Chapter '{chapter_name}': Empty.")
         return
 
-    maxim = max(nums)
-    missing = [i for i in range(1, maxim + 1) if i not in nums]
+    low, high = min(found), max(found)
+    missing = [i for i in range(low, high + 1) if i not in found]
 
-    print(f"Cel mai mare număr: {maxim}")
-    if missing:
-        print(f"Numerele care lipsesc: {missing}")
-    else:
-        print("Nu lipsesc numere între 1 și", maxim)
-
-    output_file = folder / "missing_grile.txt"
-    with open(output_file, "w", encoding="utf-8") as f:
-        if missing:
-            f.write("Grilele care lipsesc:\n")
-            f.write(", ".join(str(i) for i in missing))
-            f.write("\n")
-        else:
-            f.write(f"Toate grilele de la 1 la {maxim} există.\n")
-
-    print(f"Lista grilelor lipsă a fost salvată în: {output_file}")
+    status = f"MISSING: {missing}" if missing else "OK (0 missing)"
+    print(f"Chapter '{chapter_name}': {low}-{high} -> {status}")
 
 if __name__ == "__main__":
-    folders = [
-
-        "final/bio/cap1_corpul_uman_celula/grile/done",
-        "final/bio/cap2_oasele_articulatiile/grile/done",
-        "final/bio/cap3_tesuturi_excitabile/grile/done",
-        "final/bio/cap4_sistemul_nervos/grile/done",
-        "final/bio/cap5_organe_de_simt/grile/done",
-        "final/bio/cap6_sistemul_endocrin_metabolism/grile/done",
-        "final/bio/cap7_sangele/grile/done",
-        "final/bio/cap8_sistemul_circulator/grile/done",
-        "final/bio/cap9_sistemul_respirator/grile/done",
-        "final/bio/cap10_sistemul_digestiv/grile/done",
-        "final/bio/cap11_sistemul_urinar/grile/done",
-        "final/bio/cap12_sistemul_reproducator/grile/done",
-        "final/bio/cap13_intrebari_asociative_recap/grile/done",
-
-        "final/chimie/cap1_solutii_acizi_baze/grile/done",
-        "final/chimie/cap2_compozitia_structura_compusilor_organici/grile/done",
-        "final/chimie/cap3_compusi_hidroxilici/grile/done",
-        "final/chimie/cap4_amine/grile/done",
-        "final/chimie/cap5_aldehide_cetone/grile/done",
-        "final/chimie/cap6_acizi_carboxilici/grile/done",
-        "final/chimie/cap7_proteine/grile/done",
-        "final/chimie/cap8_glucide/grile/done",
-        "final/chimie/cap9_medicamente_droguri/grile/done",
-        "final/chimie/cap10_izomerie/grile/done",
-        "final/chimie/cap11_grile_asociative_recap/grile/done",
-    ]
-
-    for folder_path in folders:
-        folder = Path(folder_path)
-        print(f"\n=== Se proceseaza folderul: {folder} ===")
-        find_missing_numbers(folder)
+    for name, path in MATH_CHAPTERS.items():
+        if path.exists() and name != "unknown_chapter":
+            validate_chapter(name, path)
