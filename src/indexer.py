@@ -4,6 +4,7 @@ import re
 import shutil
 from pathlib import Path
 from multiprocessing import Pool
+from collections import defaultdict, Counter
 from configs.config import *
 
 def extract_circle_ROIs(image_path):
@@ -16,19 +17,20 @@ def extract_circle_ROIs(image_path):
     ROI_list = []
     for c in contours:
         x, y, w, h = cv2.boundingRect(c)
-        if w > MIN_CIRCLE_SIZE and h > MIN_CIRCLE_SIZE:
+        if MIN_CIRCLE_SIZE < w < MAX_CIRCLE_SIZE and MIN_CIRCLE_SIZE < h < MAX_CIRCLE_SIZE:
             aspect_ratio = float(w) / h
             if ASPECT_RATIO_MIN < aspect_ratio < ASPECT_RATIO_MAX:
                 if x < MAX_CIRCLE_X:
                     ROI = original[y:y+h, x:x+w]
-                    ROI_list.append(ROI)
+                    ROI_list.append((y, ROI))
 
-    return ROI_list
+    ROI_list.sort(key=lambda item: item[0])
+    return [item[1] for item in ROI_list]
 
 
-def extract_quiz_numbers(image_path):
+def extract_quiz_numbers_with_ocr(image_path):
     ROIs = extract_circle_ROIs(image_path)
-    numbers = []
+    extracted = []
     for ROI in ROIs:
         h, w = ROI.shape[:2]
         margin = 15
@@ -38,25 +40,26 @@ def extract_quiz_numbers(image_path):
         inner_gray = cv2.cvtColor(inner, cv2.COLOR_BGR2GRAY)
         _, inner_bin_no_pad = cv2.threshold(inner_gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
-        ocr_text = pytesseract.image_to_string(inner_bin_no_pad, config='--psm 8 -c tessedit_char_whitelist=0123456789')
+        inner_bin_pad = cv2.copyMakeBorder(inner_bin_no_pad, 10, 10, 10, 10, cv2.BORDER_CONSTANT, value=255)
+
+        ocr_text = pytesseract.image_to_string(inner_bin_pad, config='--psm 8')
+
+        replacements = {
+            'l': '1', 'L': '1', 'I': '1', '|': '1', 'i': '1',
+            'A': '4', 'S': '5', 's': '5', 'O': '0', 'o': '0', 'Q': '0',
+            'B': '8', 'Z': '2', 'z': '2'
+        }
+        for char, num in replacements.items():
+            ocr_text = ocr_text.replace(char, num)
+
         clean_num = re.sub(r'\D', '', ocr_text)
 
-        if not clean_num:
-            inner_bin_padded = cv2.copyMakeBorder(inner_bin_no_pad, 50, 50, 50, 50, cv2.BORDER_CONSTANT, value=255)
-            ocr_text_fallback = pytesseract.image_to_string(inner_bin_padded, config='--psm 7')
-            replacements = {
-                'l': '1', 'L': '1', 'I': '1', '|': '1', 'i': '1',
-                'A': '4', 'S': '5', 's': '5', 'O': '0', 'o': '0', 'Q': '0',
-                'B': '8', 'Z': '2', 'z': '2'
-            }
-            for char, num in replacements.items():
-                ocr_text_fallback = ocr_text_fallback.replace(char, num)
-            clean_num = re.sub(r'\D', '', ocr_text_fallback)
-
         if clean_num:
-            numbers.append(clean_num)
+            extracted.append(int(clean_num))
+        else:
+            extracted.append(None)
 
-    return numbers
+    return extracted
 
 
 def rename_and_move_image(original_image_path, quiz_numbers, destination_folder):
@@ -79,24 +82,54 @@ def rename_and_move_image(original_image_path, quiz_numbers, destination_folder)
     shutil.copy(original_image_path, new_image_path)
 
 
-def process_single_quiz(image_path):
-    image_path = Path(image_path)
-    quiz_numbers = extract_quiz_numbers(str(image_path))
+def process_page_group(item):
+    page_num, images_for_page = item
+    images_for_page.sort()
 
-    page_num = int(image_path.stem.split("_")[1])
-    chapter = get_chapter_by_page(page_num)
+    all_extracted = []
+    image_roi_counts = []
+
+    for image_path in images_for_page:
+        extracted = extract_quiz_numbers_with_ocr(str(image_path))
+        all_extracted.extend(extracted)
+        image_roi_counts.append((image_path, len(extracted)))
+
+    c_votes = []
+    for i, num in enumerate(all_extracted):
+        if num is not None:
+            c_votes.append(num - i)
+
+    if not c_votes:
+        best_c = 0
+    else:
+        best_c = Counter(c_votes).most_common(1)[0][0]
+
+    reconstructed = [str(best_c + i) for i in range(len(all_extracted))]
+
+    idx = 0
+    chapter = get_chapter_by_page(int(page_num))
     destination = MATH_CHAPTERS[chapter]
 
-    rename_and_move_image(str(image_path), quiz_numbers, destination)
+    for image_path, count in image_roi_counts:
+        quiz_numbers = reconstructed[idx : idx+count]
+        idx += count
+        rename_and_move_image(str(image_path), quiz_numbers, destination)
+
+    return len(images_for_page)
 
 
 if __name__ == "__main__":
     images = list(RAW_QUIZZES_DIR.glob("*.png"))
     total = len(images)
-    print(f"Processing {total} quizzes...")
+    print(f"Grouping and processing {total} quizzes by page...")
+
+    pages_dict = defaultdict(list)
+    for img in images:
+        page_num = img.stem.split("_")[1]
+        pages_dict[page_num].append(img)
 
     with Pool() as pool:
-        pool.map(process_single_quiz, images)
+        pool.map(process_page_group, list(pages_dict.items()))
 
     indexed = sum(len(list(path.glob("*.png"))) for path in MATH_CHAPTERS.values() if path.name != "unknown")
     unknowns = sum(len(list(path.glob("unknown_quizzes/*.png"))) for path in MATH_CHAPTERS.values() if path.name != "unknown")
