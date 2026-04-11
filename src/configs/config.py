@@ -20,8 +20,24 @@ MATH_CHAPTERS = {
     "analiza": PROCESSED_DIR / "analiza",
     "geometrie": PROCESSED_DIR / "geometrie",
     "trigonometrie": PROCESSED_DIR / "trigonometrie",
-    "subiecte_admitere_simulare": PROCESSED_DIR / "subiecte_admitere_simulare"
+    "subiecte_admitere_simulare": PROCESSED_DIR / "subiecte_admitere_simulare",
+    "unknown_chapter": PROCESSED_DIR / "unknown"
 }
+
+CHAPTER_PAGES = {
+    "algebra": (7, 37),
+    "analiza": (39, 77),
+    "geometrie": (79, 83),
+    "trigonometrie": (85, 94),
+    "subiecte_admitere_simulare": (95, 148)
+}
+
+def get_chapter_by_page(page_num):
+    for chapter, (start, end) in CHAPTER_PAGES.items():
+        if start <= page_num <= end:
+            return chapter
+    return "unknown_chapter"
+
 
 for path in [PAGES_DIR, PROCESSED_DIR, OUTPUT_DIR] + list(MATH_CHAPTERS.values()):
     path.mkdir(parents=True, exist_ok=True)

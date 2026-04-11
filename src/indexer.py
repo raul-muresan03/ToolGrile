@@ -64,21 +64,33 @@ def rename_and_move_image(original_image_path, quiz_numbers, destination_folder)
 
 
 def process_single_quiz(image_path):
+    image_path = Path(image_path)
     quiz_numbers = extract_quiz_numbers(str(image_path))
-    rename_and_move_image(str(image_path), quiz_numbers, INDEXED_QUIZZES_DIR)
+
+    page_num = int(image_path.stem.split("_")[1])
+    chapter = get_chapter_by_page(page_num)
+    destination = MATH_CHAPTERS[chapter]
+
+    rename_and_move_image(str(image_path), quiz_numbers, destination)
 
 
 if __name__ == "__main__":
     images = list(RAW_QUIZZES_DIR.glob("*.png"))
-    print(f"Processing {len(images)} quizzes...")
+    total = len(images)
+    indexed = sum(len(list(path.glob("*.png"))) for path in MATH_CHAPTERS.values())
+    unknown_dir = MATH_CHAPTERS["unknown_chapter"] / "unknown_quizzes"
+    if unknown_dir.exists():
+        unknowns = len(list(unknown_dir.glob("*.png")))
+    else:
+        unknowns = 0
+
+    print(f"Processing {total} quizzes...")
 
     with Pool() as pool:
         pool.map(process_single_quiz, images)
 
-    indexed = len(list(INDEXED_QUIZZES_DIR.glob("*.png")))
-    unknowns = len(list((INDEXED_QUIZZES_DIR / "unknown_quizzes").glob("*.png")))
 
-    print("Done!")
-    print(f"Total processed: {total_total}")
+    print(f"\nDone!")
+    print(f"Total processed: {total}")
     print(f"Successfully indexed: {indexed}")
-    print(f"Unknowns: {unknowns} (check subfolder)")
+    print(f"Unknowns: {unknowns}")
