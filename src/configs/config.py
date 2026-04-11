@@ -32,6 +32,8 @@ CHAPTER_PAGES = {
     "subiecte_admitere_simulare": (95, 148)
 }
 
+ANSWERS_PAGES = (153, 156)
+
 def get_chapter_by_page(page_num):
     for chapter, (start, end) in CHAPTER_PAGES.items():
         if start <= page_num <= end:
