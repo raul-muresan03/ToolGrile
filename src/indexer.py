@@ -35,8 +35,24 @@ def extract_quiz_numbers(image_path):
         inner = ROI[margin:h-margin, margin:w-margin]
         inner = cv2.resize(inner, (300, 300), interpolation=cv2.INTER_CUBIC)
 
-        ocr_text = pytesseract.image_to_string(inner, config='--psm 8 -c tessedit_char_whitelist=0123456789')
+        inner_gray = cv2.cvtColor(inner, cv2.COLOR_BGR2GRAY)
+        _, inner_bin_no_pad = cv2.threshold(inner_gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+
+        ocr_text = pytesseract.image_to_string(inner_bin_no_pad, config='--psm 8 -c tessedit_char_whitelist=0123456789')
         clean_num = re.sub(r'\D', '', ocr_text)
+
+        if not clean_num:
+            inner_bin_padded = cv2.copyMakeBorder(inner_bin_no_pad, 50, 50, 50, 50, cv2.BORDER_CONSTANT, value=255)
+            ocr_text_fallback = pytesseract.image_to_string(inner_bin_padded, config='--psm 7')
+            replacements = {
+                'l': '1', 'L': '1', 'I': '1', '|': '1', 'i': '1',
+                'A': '4', 'S': '5', 's': '5', 'O': '0', 'o': '0', 'Q': '0',
+                'B': '8', 'Z': '2', 'z': '2'
+            }
+            for char, num in replacements.items():
+                ocr_text_fallback = ocr_text_fallback.replace(char, num)
+            clean_num = re.sub(r'\D', '', ocr_text_fallback)
+
         if clean_num:
             numbers.append(clean_num)
 
@@ -77,18 +93,13 @@ def process_single_quiz(image_path):
 if __name__ == "__main__":
     images = list(RAW_QUIZZES_DIR.glob("*.png"))
     total = len(images)
-    indexed = sum(len(list(path.glob("*.png"))) for path in MATH_CHAPTERS.values())
-    unknown_dir = MATH_CHAPTERS["unknown_chapter"] / "unknown_quizzes"
-    if unknown_dir.exists():
-        unknowns = len(list(unknown_dir.glob("*.png")))
-    else:
-        unknowns = 0
-
     print(f"Processing {total} quizzes...")
 
     with Pool() as pool:
         pool.map(process_single_quiz, images)
 
+    indexed = sum(len(list(path.glob("*.png"))) for path in MATH_CHAPTERS.values() if path.name != "unknown")
+    unknowns = sum(len(list(path.glob("unknown_quizzes/*.png"))) for path in MATH_CHAPTERS.values() if path.name != "unknown")
 
     print(f"\nDone!")
     print(f"Total processed: {total}")
