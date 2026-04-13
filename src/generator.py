@@ -1,410 +1,100 @@
-import os
 import random
 import re
-from docx import Document
-from docx.shared import Inches, Pt  
-from docx.enum.text import WD_ALIGN_PARAGRAPH  
-from reportlab.lib.pagesizes import A4
-from reportlab.lib.units import inch
-from reportlab.pdfgen import canvas
-from reportlab.platypus import Image as ReportLabImage
-import shutil
-from config import *
+import json
+from configs.config import PROCESSED_DIR, MATH_CHAPTERS
 
-def get_quizzes_by_subject_and_type(base_dir):
-    """
-    Parcurge directoarele și colectează căile către grile,
-    clasificându-le după subiect și tip (teorie/probleme), conform noii structuri.
-    """
-    quizzes = {
+def load_answers():
+    answers_path = PROCESSED_DIR / "final_answers.json"
+    if not answers_path.exists():
+        print(f"Warning: {answers_path} not found. Some answers may be missing.")
+        return {}
+    with open(answers_path, "r", encoding="utf-8") as f:
+        return json.load(f)
 
-        "biologie": {"teorie": [], "probleme": []},
-        "chimie": {"teorie": [], "probleme": []},
-    }
+def scan_inventory():
+    inventory = []
+    answers = load_answers()
 
-    print(f"Colectez grile din: {base_dir}")
-
-    for subject_folder_name in os.listdir(base_dir):
-        subject_path = os.path.join(base_dir, subject_folder_name)
-
-        if not os.path.isdir(subject_path):
+    for chapter_name, chapter_path in MATH_CHAPTERS.items():
+        if chapter_name == "unknown_chapter":
             continue
 
-        current_subject = None
-        if "bio" in subject_folder_name.lower():
-            current_subject = "biologie"
-        elif "chimie" in subject_folder_name.lower():
-            current_subject = "chimie"
-        else:
-            print(
-                f"Avertisment: Director subiect necunoscut '{subject_folder_name}'. Ignor.")
+        if not chapter_path.exists():
             continue
 
-        print(f"  Procesez subiectul: {current_subject}")
-
-        for chapter_folder_name in os.listdir(subject_path):
-            chapter_folder_path = os.path.join(subject_path, chapter_folder_name)
-
-            if not os.path.isdir(chapter_folder_path):
+        for file in chapter_path.glob("*.png"):
+            match = re.search(r'quiz_([\d_]+)\.png', file.name)
+            if not match:
                 continue
 
-            match_chapter = re.match(r"cap(\d+)_.*", chapter_folder_name)       
-            if not match_chapter:
-                continue
+            ids_str = match.group(1).split('_')
+            grid_ids = [s for s in ids_str if s]
 
-            chapter_number = match_chapter.group(1)
+            if all(str(gid) in answers for gid in grid_ids):
+                inventory.append({
+                    "chapter": chapter_name,
+                    "path": str(file.relative_to(PROCESSED_DIR.parent.parent)),
+                    "ids": grid_ids,
+                    "answers": {gid: answers[str(gid)] for gid in grid_ids}
+                })
 
-            done_folder_path = os.path.join(chapter_folder_path, "grile", "done")
+    return inventory
 
-            if not os.path.exists(done_folder_path):
-                continue
-
-            for quiz_filename in os.listdir(done_folder_path):
-                if quiz_filename.lower().endswith(".png"):
-                    quiz_path = os.path.join(done_folder_path, quiz_filename)
-
-                    quiz_number_match = re.match(r"(\d+)\.png", quiz_filename, re.IGNORECASE)
-                    if quiz_number_match:
-                        quiz_number = int(quiz_number_match.group(1))
-                    else:
-                        print(f"    Avertisment: Nume fișier grilă neașteptat '{quiz_filename}'. Sărit.")
-                        continue
-
-                    quiz_info = {
-                        "path": quiz_path,
-                        "quiz_number": quiz_number,
-                        "chapter_number": int(chapter_number)
-                    }
-
-                    quizzes[current_subject]["teorie"].append(quiz_info)
-
-            if current_subject == "chimie":
-                pb_folder_path = os.path.join(done_folder_path, "pb")
-                if os.path.exists(pb_folder_path) and os.path.isdir(pb_folder_path):
-                    for quiz_filename in os.listdir(pb_folder_path):
-                        if quiz_filename.lower().endswith(".png"):
-                            quiz_path = os.path.join(pb_folder_path, quiz_filename)
-
-                            quiz_number_match = re.match(r"(\d+)\.png", quiz_filename, re.IGNORECASE)
-                            if quiz_number_match:
-                                quiz_number = int(quiz_number_match.group(1))
-                            else:
-                                print(f"Avertisment: Nume fișier grilă problemă neașteptat '{quiz_filename}'. Sărit.")
-                                continue
-
-                            quiz_info = {
-                                "path": quiz_path,
-                                "quiz_number": quiz_number,
-                                "chapter_number": int(chapter_number)
-                            }
-                            quizzes[current_subject]["probleme"].append(quiz_info)
-
-    print("Colectare grile finalizată.")
-
-    print(f"Sumar grile colectate:")
-    print(f"  Biologie (total): {len(quizzes['biologie']['teorie'])}")
-    print(f"  Chimie (teorie): {len(quizzes['chimie']['teorie'])}")
-    print(f"  Chimie (probleme): {len(quizzes['chimie']['probleme'])}")
-
-    return quizzes
-
-def create_word_document(selected_bio_quizzes, selected_chimie_quizzes, output_path, chapter_quiz_map_lines):
-    """Generează un document Word cu imaginile selectate, ordonate după subiect."""
-    document = Document()
-
-    for i, quiz_info in enumerate(selected_bio_quizzes):
-        try:
-            document.add_picture(quiz_info["path"], width=Inches(6))
-        except Exception as e:
-            document.add_paragraph(
-                f"Eroare la adăugarea imaginii {quiz_info['path']}: {e}")
-
-    delimiter_paragraph = document.add_paragraph('-')
-    delimiter_paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER  
-    delimiter_paragraph.runs[0].font.size = Pt(
-        24)  
-    document.add_page_break()  
-
-    start_num_chimie = len(selected_bio_quizzes)
-    for i, quiz_info in enumerate(selected_chimie_quizzes):
-        try:
-            document.add_picture(quiz_info["path"], width=Inches(6))
-        except Exception as e:
-            document.add_paragraph(
-                f"Eroare la adăugarea imaginii {quiz_info['path']}: {e}")
-
-    document.save(output_path)
-    print(f"Document Word generat: {output_path}")
-
-def create_pdf_document(selected_bio_quizzes, selected_chimie_quizzes, output_path, chapter_quiz_map_lines):
-    """
-    Generează un document PDF cu imaginile selectate, respectând ordinea și delimitarea
-    din documentul Word.
-    """
-    c = canvas.Canvas(output_path, pagesize=A4)
-    width, height = A4
-
-    textobject = c.beginText()
-    textobject.setTextOrigin(inch, height - inch)
-    textobject.setFont("Helvetica", 12)
-
-    y_position = height - (2 * inch)
-    margin = 0.5 * inch
-
-    def add_quiz_to_pdf(quiz_info, current_y, quiz_idx):
-        nonlocal c, y_position  
-        try:
-            img_path = quiz_info["path"]
-            temp_img = ReportLabImage(img_path)
-            img_width, img_height = temp_img.drawWidth, temp_img.drawHeight
-
-            available_width = width - 2 * margin
-            if img_width > available_width:
-                scale_factor = available_width / img_width
-                img_width *= scale_factor
-                img_height *= scale_factor
-
-            c.setFont("Helvetica-Bold", 10)
-            current_y -= 0.3 * inch  
-
-            if current_y - img_height < margin:  
-                c.showPage()
-                y_position = height - inch  
-                current_y = y_position
-
-                c.setFont("Helvetica-Bold", 10)
-                current_y -= 0.3 * inch
-
-            c.drawImage(img_path, margin, current_y - img_height,
-                        width=img_width, height=img_height)
-            current_y -= (img_height + 0.2 * inch)  
-
-        except Exception as e:
-            print(
-                f"Eroare la adăugarea imaginii {quiz_info['path']} în PDF: {e}")
-            c.drawString(margin, current_y,
-                         f"Eroare la încărcarea imaginii: {quiz_info['path']}")
-            current_y -= (0.5 * inch)
-        return current_y
-
-    c.setFont("Helvetica-Bold", 14)
-    y_position -= 0.5 * inch  
-    for i, quiz_info in enumerate(selected_bio_quizzes):
-        y_position = add_quiz_to_pdf(quiz_info, y_position, i + 1)
-
-    if y_position - 0.5 * inch < margin:  
-        c.showPage()
-        y_position = height - inch
-    c.setFont("Helvetica-Bold", 24)
-    c.drawCentredString(width / 2, y_position - 0.3 * inch, "-")
-    y_position -= 0.5 * inch  
-    c.showPage()  
-
-    c.setFont("Helvetica-Bold", 14)
-    y_position -= 0.5 * inch  
-    start_num_chimie = len(selected_bio_quizzes)
-    for i, quiz_info in enumerate(selected_chimie_quizzes):
-        y_position = add_quiz_to_pdf(
-            quiz_info, y_position, start_num_chimie + i + 1)
-
-    c.save()
-    print(f"Document PDF generat: {output_path}")
-
-def select_quizzes_with_weights(all_quizzes_list, num_needed, weights):
-    """
-    Selectează un număr specific de grile dintr-o listă generală,
-    ținând cont de ponderile specificate pentru fiecare capitol.
-
-    Args:
-        all_quizzes_list (list): O listă de dicționare quiz_info din care să selectezi.
-        num_needed (int): Numărul total de grile de selectat.
-        weights (dict): Dicționar de ponderi {chapter_number: weight}.
-                        Capitolele fără pondere explicită vor avea ponderea 1.0.
-
-    Returns:
-        list: O listă de quiz_info selectate, unice și ponderate.
-    """
-
-    quizzes_by_chapter = {}
-    for quiz in all_quizzes_list:
-        chapter_num = quiz["chapter_number"]
-        if chapter_num not in quizzes_by_chapter:
-            quizzes_by_chapter[chapter_num] = []
-        quizzes_by_chapter[chapter_num].append(quiz)
-
-    selection_pool_chapters = []  
-
-    for chapter_num, quizzes_in_chapter in quizzes_by_chapter.items():
-        weight = weights.get(chapter_num, 1.0)
-        if quizzes_in_chapter:
-            for _ in range(int(weight * 10)):
-                selection_pool_chapters.append(chapter_num)
-
-    if not selection_pool_chapters:
-        print("Pool de selecție capitole este gol. Nu se pot extrage grile.")
+def generate_quiz_session(total_needed, chapter_weights=None):
+    inventory = scan_inventory()
+    if not inventory:
         return []
 
-    selected_quizzes_unique = []
-    selected_quiz_paths = set()
+    by_chapter = {}
+    for item in inventory:
+        cat = item["chapter"]
+        if cat not in by_chapter:
+            by_chapter[cat] = []
+        by_chapter[cat].append(item)
 
-    attempts = 0
-    max_attempts = num_needed * 10 + 200
+    available_chapters = list(by_chapter.keys())
 
-    while len(selected_quizzes_unique) < num_needed and attempts < max_attempts:
-        attempts += 1
-        chosen_chapter_num = random.choice(selection_pool_chapters)
+    if not chapter_weights:
+        chapter_weights = {c: 1 for c in available_chapters}
 
-        quizzes_from_chosen_chapter = quizzes_by_chapter.get(
-            chosen_chapter_num, [])
+    active_weights = {c: w for c, w in chapter_weights.items() if c in available_chapters}
 
-        available_in_chapter = [q for q in quizzes_from_chosen_chapter if q["path"] not in selected_quiz_paths]
+    if not active_weights:
+        return []
 
-        if not available_in_chapter:
-            selection_pool_chapters = [c for c in selection_pool_chapters if c != chosen_chapter_num]
-            if not selection_pool_chapters:
-                print(f"Avertisment: Nu mai sunt grile unice disponibile în niciun capitol pentru a atinge numărul necesar ({num_needed}). S-au găsit doar {len(selected_quizzes_unique)}.")
-                break
+    selected_items = []
+    collected_count = 0
+
+    for cat in by_chapter:
+        random.shuffle(by_chapter[cat])
+
+    weighted_pool = []
+    for chapter, weight in active_weights.items():
+        weighted_pool.extend([chapter] * int(weight * 10))
+
+    used_paths = set()
+
+    while collected_count < total_needed and weighted_pool:
+        target_chapter = random.choice(weighted_pool)
+
+        if not by_chapter[target_chapter]:
+            weighted_pool = [c for c in weighted_pool if c != target_chapter]
             continue
 
-        quiz_candidate = random.choice(available_in_chapter)
+        candidate = by_chapter[target_chapter].pop(0)
 
-        selected_quizzes_unique.append(quiz_candidate)
-        selected_quiz_paths.add(quiz_candidate["path"])
+        if candidate["path"] in used_paths:
+            continue
 
-    if len(selected_quizzes_unique) < num_needed:
-        print(f"Avertisment: Nu s-au putut selecta {num_needed} grile unice cu ponderile și grilele disponibile. S-au găsit doar {len(selected_quizzes_unique)}.")
+        selected_items.append(candidate)
+        used_paths.add(candidate["path"])
+        collected_count += len(candidate["ids"])
 
-    return selected_quizzes_unique
-
-def generate_simulation():
-    """Generează o simulare conform specificațiilor."""
-    all_quizzes = get_quizzes_by_subject_and_type(QUIZ_BASE_DIR)
-
-    bio_quizzes = all_quizzes["biologie"]["teorie"]
-    chimie_teorie_quizzes = all_quizzes["chimie"]["teorie"]
-    chimie_probleme_quizzes = all_quizzes["chimie"]["probleme"]
-
-    if len(bio_quizzes) < NUM_BIO_QUIZZES:
-        print(f"Eroare: Nu sunt suficiente grile de biologie ({len(bio_quizzes)} disponibile, necesare {NUM_BIO_QUIZZES}).")
-        return
-
-    if len(chimie_teorie_quizzes) < NUM_CHIMIE_TEORIE_QUIZZES:
-        print(f"Eroare: Nu sunt suficiente grile de chimie (teorie) ({len(chimie_teorie_quizzes)} disponibile, necesare {NUM_CHIMIE_TEORIE_QUIZZES}).")
-        return
-
-    if len(chimie_probleme_quizzes) < NUM_CHIMIE_PROBLEME_QUIZZES:
-        print(f"Eroare: Nu sunt suficiente grile de chimie (probleme) ({len(chimie_probleme_quizzes)} disponibile, necesare {NUM_CHIMIE_PROBLEME_QUIZZES}).")
-        return
-
-    print(f"Se selecteaza {NUM_BIO_QUIZZES} grile de biologie cu ponderi...")
-    selected_bio = select_quizzes_with_weights(bio_quizzes, NUM_BIO_QUIZZES, BIOLOGY_CHAPTER_WEIGHTS)
-    if len(selected_bio) < NUM_BIO_QUIZZES:
-        print(f"ATENȚIE: Nu s-au putut selecta toate grilele de biologie dorite cu ponderi. S-au obținut doar {len(selected_bio)}.")
-
-    print(f"Se selecteaza {NUM_CHIMIE_TEORIE_QUIZZES} grile de chimie (teorie) cu ponderi...")
-    selected_chimie_teorie = select_quizzes_with_weights(chimie_teorie_quizzes, NUM_CHIMIE_TEORIE_QUIZZES, CHEMISTRY_CHAPTER_WEIGHTS_TEORIE)
-    if len(selected_chimie_teorie) < NUM_CHIMIE_TEORIE_QUIZZES:
-        print(f"ATENȚIE: Nu s-au putut selecta toate grilele de chimie (teorie) dorite cu ponderi. S-au obținut doar {len(selected_chimie_teorie)}.")
-
-    print(f"Se selecteaza {NUM_CHIMIE_PROBLEME_QUIZZES} grile de chimie (probleme) cu ponderi...")
-    selected_chimie_probleme = select_quizzes_with_weights(chimie_probleme_quizzes, NUM_CHIMIE_PROBLEME_QUIZZES, CHEMISTRY_CHAPTER_WEIGHTS_PROBLEME)
-    if len(selected_chimie_probleme) < NUM_CHIMIE_PROBLEME_QUIZZES:
-        print(f"ATENȚIE: Nu s-au putut selecta toate grilele de chimie (probleme) dorite cu ponderi. S-au obținut doar {len(selected_chimie_probleme)}.")
-
-    selected_bio_quizzes = selected_bio
-    selected_chimie_combined = selected_chimie_teorie + selected_chimie_probleme
-    random.shuffle(selected_chimie_combined)
-
-    bio_map = {}
-    for quiz in selected_bio_quizzes:
-        chapter = quiz["chapter_number"]
-        quiz_num = quiz["quiz_number"]
-        if chapter not in bio_map:
-            bio_map[chapter] = []
-        bio_map[chapter].append(quiz_num)
-
-    chimie_map = {}
-    for quiz in selected_chimie_combined:
-        chapter = quiz["chapter_number"]
-        quiz_num = quiz["quiz_number"]
-        if chapter not in chimie_map:
-            chimie_map[chapter] = []
-        chimie_map[chapter].append(quiz_num)
-
-    chapter_quiz_map_lines = []
-    chapter_quiz_map_lines.append("BIO")
-    for chapter in sorted(bio_map.keys()):
-        quizzes_in_chapter = sorted(bio_map[chapter])
-        chapter_quiz_map_lines.append(f"cap{chapter} -> grila {', '.join(map(str, quizzes_in_chapter))}")
-
-    chapter_quiz_map_lines.append("")
-    chapter_quiz_map_lines.append("CHIMIE")
-    for chapter in sorted(chimie_map.keys()):
-        quizzes_in_chapter = sorted(chimie_map[chapter])
-        chapter_quiz_map_lines.append(f"cap{chapter} -> grila {', '.join(map(str, quizzes_in_chapter))}")
-
-    os.makedirs(OUTPUT_SIMULATION_DIR, exist_ok=True)
-
-    simulation_name = f"simulare_{random.randint(1000,9999)}"
-    current_simulation_output_dir = os.path.join(OUTPUT_SIMULATION_DIR, simulation_name)
-    os.makedirs(current_simulation_output_dir, exist_ok=True)
-
-    txt_output_path = os.path.join(OUTPUT_SIMULATION_DIR, f"{simulation_name}_detalii.txt")
-    with open(txt_output_path, "w", encoding='utf-8') as f:
-        f.write("Detalii Simulare:\n")
-        for line in chapter_quiz_map_lines:
-            f.write(line + "\n")
-    print(f"Fișier TXT generat: {txt_output_path}")
-
-    word_output_path = os.path.join(OUTPUT_SIMULATION_DIR, f"{simulation_name}.docx")
-    create_word_document(selected_bio_quizzes, selected_chimie_combined, word_output_path, chapter_quiz_map_lines)
-
-    pdf_output_path = os.path.join(OUTPUT_SIMULATION_DIR, f"{simulation_name}.pdf")
-    create_pdf_document(selected_bio_quizzes, selected_chimie_combined, pdf_output_path, chapter_quiz_map_lines)
-
-    print("\n Se copiaza baremele relevante...")
-
-    unique_bio_chapters = set(quiz["chapter_number"] for quiz in selected_bio_quizzes)
-    unique_chimie_chapters = set(quiz["chapter_number"] for quiz in selected_chimie_combined)
-
-    bio_barem_source_dir = os.path.join(BAREM_BASE_DIR, "bio")
-    for chapter_num in unique_bio_chapters:
-        barem_filename = f"bio_cap{chapter_num}_barem.png"
-        source_path = os.path.join(bio_barem_source_dir, barem_filename)
-        destination_path = os.path.join(current_simulation_output_dir, barem_filename)
-
-        if os.path.exists(source_path):
-            try:
-                shutil.copy2(source_path, destination_path)
-                print(f"S-a copiat barem-ul de la biologie: {barem_filename}")
-            except Exception as e:
-                print(f"Eroare la copierea baremului {barem_filename}: {e}")
-        else:
-            print(f"Baremul '{barem_filename}' nu a fost găsit la '{source_path}'.")
-
-    chimie_barem_source_dir = os.path.join(BAREM_BASE_DIR, "chimie")
-    for chapter_num in unique_chimie_chapters:
-        barem_filename = f"chimie_cap{chapter_num}_barem.png"
-        source_path = os.path.join(chimie_barem_source_dir, barem_filename)
-        destination_path = os.path.join(current_simulation_output_dir, barem_filename)
-
-        if os.path.exists(source_path):
-            try:
-                shutil.copy2(source_path, destination_path)
-                print(f"S-a copiat baremul de chimie: {barem_filename}")
-            except Exception as e:
-                print(f"Eroare la copierea baremului {barem_filename}: {e}")
-        else:
-            print(f"Baremul '{barem_filename}' nu a fost găsit la '{source_path}'.")
-
-    print("\nGenerarea simularii finalizata!")
+    return selected_items
 
 if __name__ == "__main__":
-    if not os.path.exists(QUIZ_BASE_DIR):
-        print(f"Eroare: Folderul pentru grile '{QUIZ_BASE_DIR}' nu există.")
-        print("Asigură-te că structura ta este 'final/bio/...' și 'final/chimie/...'.")
-    elif not os.path.exists(BAREM_BASE_DIR):
-        print(f"Eroare: Folderul pentru baremuri '{BAREM_BASE_DIR}' nu există.")
-        print("Asigură-te că ai folderul 'baremuri' cu subfolderele 'bio' și 'chimie' ce conțin baremele.")
-    else:
-        generate_simulation()
+    session = generate_quiz_session(total_needed=10, chapter_weights={"algebra": 1, "analiza": 1})
+
+    for i, item in enumerate(session):
+        print(f"{i+1}. [{item['chapter']}] Quizzes: {', '.join(item['ids'])} -> Answers: {item['answers']}")
+        print(f"   Path: {item['path']}")
