@@ -14,6 +14,8 @@ INDEXED_QUIZZES_DIR = TEMP_DIR / "indexed_quizzes"
 
 RAW_PDF_PATH = RAW_DIR / "culegere_grile_utcn.pdf"
 
+ANSWER_BBOXES = TEMP_DIR / "answers_bboxes"
+
 DPI = 300
 MATH_CHAPTERS = {
     "algebra": PROCESSED_DIR / "algebra",
@@ -41,7 +43,12 @@ def get_chapter_by_page(page_num):
     return "unknown_chapter"
 
 
-for path in [PAGES_DIR, PROCESSED_DIR, OUTPUT_DIR] + list(MATH_CHAPTERS.values()):
+all_dirs = [
+    RAW_DIR, TEMP_DIR, PAGES_DIR, RAW_QUIZZES_DIR,
+    INDEXED_QUIZZES_DIR, ANSWER_BBOXES, PROCESSED_DIR, OUTPUT_DIR
+] + list(MATH_CHAPTERS.values())
+
+for path in all_dirs:
     path.mkdir(parents=True, exist_ok=True)
 
 

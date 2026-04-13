@@ -1,76 +1,111 @@
 import cv2
 import pytesseract
-import json
 import re
+import json
 from pathlib import Path
 import numpy as np
+from multiprocessing import Pool
 from configs.config import *
 
-def extract_answers_from_page(image_path):
+def extract_answer_bboxes_from_page(image_path, out_path, page_num):
     img = cv2.imread(str(image_path))
+    if img is None:
+        return
+
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV)
 
-    _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    kernel = np.ones((2, 3), np.uint8)
+    dilated = cv2.dilate(binary, kernel, iterations=14)
 
-    vertical_sum = np.sum(255 - binary, axis=0)
+    contours, _ = cv2.findContours(dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-    list_indeces = [i for i, val in enumerate(vertical_sum) if val > img.shape[0] * 0.5 * 255]
+    for i, c in enumerate(contours):
+        x, y, w, h = cv2.boundingRect(c)
+        if w > 200 or h > 500:
+            continue
 
-    separators = [0]
-    for i in range(len(list_indeces) - 1):
-        if list_indeces[i+1] - list_indeces[i] > 10:
-            separators.append(list_indeces[i])
+        ROI = img[y:y+h, x:x+w]
+        padded_roi = cv2.copyMakeBorder(ROI, 10, 10, 10, 10, cv2.BORDER_CONSTANT, value=[255, 255, 255])
 
-    if list_indeces:
-        separators.append(list_indeces[-1])
-    separators.append(img.shape[1])
+        filename = f"page_{page_num:03d}_bbox_{i:03d}.png"
+        cv2.imwrite(str(out_path / filename), padded_roi)
 
-    all_extracted_matches = []
+def bbox2json(image_path):
+    ROI = cv2.imread(str(image_path))
+    if ROI is None: return {}
 
-    for i in range(len(separators) - 1):
-        x1, x2 = separators[i], separators[i+1]
+    ROI = cv2.copyMakeBorder(ROI, 30, 30, 30, 30, cv2.BORDER_CONSTANT, value=[255, 255, 255])
+    gray = cv2.cvtColor(ROI, cv2.COLOR_BGR2GRAY)
 
-        strip = binary[:, x1 : x2]
-        if strip.shape[1] < 15: continue
+    _, thresh = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY)
 
-        padded = cv2.copyMakeBorder(strip, 50, 50, 50, 50, cv2.BORDER_CONSTANT, value=255)
+    text = pytesseract.image_to_string(thresh, config='--psm 6').strip()
 
-        text_ocr = pytesseract.image_to_string(padded, config='--psm 6')
+    replacements = {
+        'T': '7', 't': '7', 'I': '1', 'l': '1', '|': '1', 'i': '1',
+        'S': '5', 's': '5', 'O': '0', 'o': '0', 'Q': '0', 'G': '6',
+        'z': '2', 'Z': '2', 'A': '4', 'B': '8', 'g': '9',
+        '&': '8', '?': '7', '>': '7'
+    }
 
-        replacements = {
-            'l': '1', 'I': '1', '|': '1', 'i': '1', 'L': '1',
-            'S': '5', 's': '5', 'G': '6', 'Z': '2', 'o': '0', 'O': '0'
-        }
-        for char, num in replacements.items():
-            text_ocr = text_ocr.replace(char, num)
+    matches = re.findall(r'([A-Za-z\d&\?]*)\s*[\W\_]*\s*([A-Ea-e])', text)
 
-        pattern = r'(\d+)\s*[^\w]*\s*([A-Ea-e])'
-        matches = re.findall(pattern, text_ocr)
-        all_extracted_matches.extend(matches)
+    results = {}
+    for num_raw, letter in matches:
+        for char, val in replacements.items():
+            num_raw = num_raw.replace(char, val)
 
-    return {int(num): letter.upper() for num, letter in all_extracted_matches}
+        clean_num = re.sub(r'\D', '', num_raw)
+        if clean_num:
+            val_num = int(clean_num)
+            if val_num > 959:
+                val_num = int(clean_num[-3:])
+            results[val_num] = letter.upper()
 
-def solve_all_answers():
-    all_keys = {}
-    start, end = ANSWERS_PAGES
+    return results
 
-    for page_num in range(start, end + 1):
-        img_path = PAGES_DIR / f"page_{page_num}.png"
-        if img_path.exists():
-            print(f"Processing answer page {page_num}...")
-            page_results = extract_answers_from_page(img_path)
-            all_keys.update(page_results)
+def process_answer_page(page_num):
+    page_img = PAGES_DIR / f"page_{page_num:03d}.png"
+    if not page_img.exists():
+        print(f"Warning: {page_img} not found.")
+        return {}
 
-    return all_keys
+    extract_answer_bboxes_from_page(page_img, ANSWER_BBOXES, page_num)
+    page_ranges = {
+        153: (1, 180),
+        154: (181, 444),
+        155: (445, 708),
+        156: (709, 959)
+    }
+    min_n, max_n = page_ranges.get(page_num, (1, 959))
+
+    page_results = {}
+    for box_file in sorted(ANSWER_BBOXES.glob(f"page_{page_num:03d}_bbox_*.png")):
+        res = bbox2json(box_file)
+        for num, letter in res.items():
+            if min_n <= num <= max_n:
+                page_results[num] = letter
+            else:
+                pass
+
+    return page_results
 
 if __name__ == "__main__":
-    answers = solve_all_answers()
-    sorted_answers = dict(sorted(answers.items()))
+    start, end = ANSWERS_PAGES
+    pages = list(range(start, end + 1))
+
+    with Pool() as pool:
+        results = pool.map(process_answer_page, pages)
+
+    final_answers = {}
+    for r in results:
+        final_answers.update(r)
+
+    sorted_answers = dict(sorted(final_answers.items()))
 
     output_path = PROCESSED_DIR / "final_answers.json"
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(sorted_answers, f, indent=4)
 
-    print(f"Done! Extracted {len(sorted_answers)} answers to {output_path}")
+    print(f"\nGenerat {output_path} cu {len(sorted_answers)} răspunsuri.")
