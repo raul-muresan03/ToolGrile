@@ -1,4 +1,50 @@
 export default function Home() {
+  const steps = [
+    {
+      num: "01",
+      title: "PDF → Imagini HD",
+      desc: "Culegerea PDF este convertită în imagini PNG la rezoluție ridicată pentru a păstra claritatea formulelor matematice.",
+      color: "blue",
+      placeholder: "/pipeline/step1_pdf_to_png.png",
+    },
+    {
+      num: "02",
+      title: "Segmentare cu OpenCV",
+      desc: "Detecția contururilor extrage automat fiecare grilă individuală din pagină.",
+      color: "violet",
+      placeholder: "/pipeline/step2_segmentation.png",
+    },
+    {
+      num: "03",
+      title: "Indexare OCR",
+      desc: "Tesseract OCR identifică și citește numărul fiecărei grile, redenumind automat fișierele cu prefixul corespunzător.",
+      color: "amber",
+      placeholder: "/pipeline/step3_ocr_index.png",
+    },
+    {
+      num: "04",
+      title: "Extragere Răspunsuri",
+      desc: "Paginile cu baremul sunt procesate, iar răspunsurile sunt mapate într-un fișier JSON.",
+      color: "emerald",
+      placeholder: "/pipeline/step4_answers.png",
+    },
+    {
+      num: "05",
+      title: "Generator de Simulări",
+      desc: "Utilizatorul configurează capitolele și ponderile, iar algoritmul asamblează un test unic, cu distribuție proporțională și verificare automată.",
+      color: "rose",
+      placeholder: "/pipeline/step5_generator.png",
+    },
+  ];
+
+  const colorMap: Record<string, { numBg: string; numText: string; accent: string; line: string }> = {
+    blue: { numBg: "bg-blue-500", numText: "text-white", accent: "border-blue-200", line: "from-blue-400" },
+    violet: { numBg: "bg-violet-500", numText: "text-white", accent: "border-violet-200", line: "from-violet-400" },
+    amber: { numBg: "bg-amber-500", numText: "text-white", accent: "border-amber-200", line: "from-amber-400" },
+    emerald: { numBg: "bg-emerald-500", numText: "text-white", accent: "border-emerald-200", line: "from-emerald-400" },
+    rose: { numBg: "bg-rose-500", numText: "text-white", accent: "border-rose-200", line: "from-rose-400" },
+  };
+
   return (
     <div className="flex flex-col items-center">
       <section className="w-full bg-white flex justify-center py-20 px-6 sm:px-12">
@@ -13,59 +59,79 @@ export default function Home() {
           </p>
         </div>
       </section>
+
       <section className="w-full bg-slate-50 py-20 flex justify-center px-6 border-t border-slate-100">
-        <div className="max-w-6xl w-full">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-slate-900 mb-4">Pipeline</h2>
-            <p className="text-lg text-slate-700">
-              Pipeline complet de procesare automată a grilelor de examen.
+        <div className="max-w-5xl w-full">
+          <div className="text-center mb-16">
+            <span className="inline-block text-xs font-extrabold uppercase tracking-[0.2em] text-blue-600 bg-blue-50 px-4 py-1.5 rounded-full mb-4">
+              Computer Vision Pipeline
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-4">
+              De la PDF scanat la test interactiv
+            </h2>
+            <p className="text-lg text-slate-500 max-w-2xl mx-auto">
+              Cinci etape automatizate transformă o culegere fizică într-o bancă de grile digitale, gata pentru generarea simulărilor.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-400 text-blue-900 font-bold flex items-center justify-center text-xl shadow-inner border-[3px] border-blue-200">
-                  1
-                </div>
-                <h3 className="text-lg font-bold text-slate-900">
-                  Segmentare prin OpenCV
-                </h3>
-              </div>
-              <p className="text-slate-500 leading-relaxed text-[15px]">
-                Se utilizează OpenCV pentru detecția contururilor și izolarea
-                automată a fiecărei întrebări dintr-o pagină scanată.
-              </p>
+          <div className="relative">
+            <div className="hidden lg:block absolute left-[39px] top-0 bottom-0 w-px bg-gradient-to-b from-blue-200 via-amber-200 to-rose-200"></div>
+
+            <div className="space-y-12 lg:space-y-16">
+              {steps.map((step, i) => {
+                const c = colorMap[step.color];
+                const isEven = i % 2 === 0;
+                return (
+                  <div key={step.num} className="relative group">
+                    <div className={`flex flex-col lg:flex-row items-start gap-6 ${!isEven ? "lg:flex-row-reverse" : ""}`}>
+                      <div className="flex items-start gap-4 lg:w-1/2 shrink-0">
+                        <div className={`relative z-10 w-[80px] h-[80px] ${c.numBg} ${c.numText} rounded-2xl flex items-center justify-center text-2xl font-black shadow-lg shrink-0 group-hover:scale-105 transition-transform duration-300`}>
+                          {step.num}
+                        </div>
+                        <div className="pt-1">
+                          <h3 className="text-xl font-extrabold text-slate-900 mb-2">
+                            {step.title}
+                          </h3>
+                          <p className="text-[15px] text-slate-500 leading-relaxed max-w-md">
+                            {step.desc}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className={`lg:w-1/2 w-full ${!isEven ? "lg:pr-8" : "lg:pl-8"}`}>
+                        <div className={`bg-white rounded-2xl border-2 border-dashed ${c.accent} h-48 sm:h-56 flex flex-col items-center justify-center text-slate-300 group-hover:border-solid group-hover:shadow-md transition-all duration-300`}>
+                          <svg className="w-10 h-10 mb-2 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z" />
+                          </svg>
+                          <span className="text-xs font-bold text-slate-400 tracking-wide">
+                            Screenshot
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-            <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-orange-300 text-orange-900 font-bold flex items-center justify-center text-xl shadow-inner border-[3px] border-orange-200">
-                  2
-                </div>
-                <h3 className="text-lg font-bold text-slate-900">
-                  Indexare OCR
+          </div>
+
+          <div className="mt-20 bg-white rounded-3xl border border-slate-200 p-8 sm:p-10">
+            <div className="flex flex-col sm:flex-row items-center gap-8">
+              <div className="flex-1">
+                <h3 className="text-2xl font-extrabold text-slate-900 mb-3">
+                  Rezultat final
                 </h3>
+                <p className="text-slate-500 leading-relaxed">
+                  O bancă completă de grile indexate, cu răspunsuri verificate, gata să fie
+                  folosită pentru generarea automată a simulărilor de examen personalizate.
+                </p>
               </div>
-              <p className="text-slate-500 leading-relaxed text-[15px]">
-                Recunoașterea automată a numerelor întrebărilor folosind
-                Tesseract OCR, păstrând în același timp fidelitatea formulelor
-                chimice.
-              </p>
-            </div>
-            <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-green-400 text-green-900 font-bold flex items-center justify-center text-xl shadow-inner border-[3px] border-green-200">
-                  3
-                </div>
-                <h3 className="text-lg font-bold text-slate-900">
-                  Selecție Ponderată
-                </h3>
+              <div className="w-full sm:w-64 h-44 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-slate-300">
+                <svg className="w-10 h-10 mb-2 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 0 0-1.883 2.542l.857 6a2.25 2.25 0 0 0 2.227 1.932H19.05a2.25 2.25 0 0 0 2.227-1.932l.857-6a2.25 2.25 0 0 0-1.883-2.542m-16.5 0V6A2.25 2.25 0 0 1 6 3.75h3.879a1.5 1.5 0 0 1 1.06.44l2.122 2.12a1.5 1.5 0 0 0 1.06.44H18A2.25 2.25 0 0 1 20.25 9v.776" />
+                </svg>
+                <span className="text-xs font-bold text-slate-400 tracking-wide">Screenshot final</span>
               </div>
-              <p className="text-slate-500 leading-relaxed text-[15px]">
-                Algoritm de asamblare aleatorie a testelor (35 grile de Biologie
-                + 15 de Chimie) cu posibilitatea de a prioritiza capitolele
-                dificile.
-              </p>
             </div>
           </div>
         </div>
