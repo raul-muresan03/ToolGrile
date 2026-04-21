@@ -39,8 +39,8 @@ export default function RangeSlider({
     <div className="w-full">
       {label && (
         <div className="flex justify-between items-center mb-2">
-          <label className="text-sm font-medium text-slate-700">{label}</label>
-          <span className="text-sm font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">
+          <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{label}</label>
+          <span className="text-sm font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">
             {internalValue} {unit}
           </span>
         </div>
@@ -53,12 +53,12 @@ export default function RangeSlider({
           step={step}
           value={internalValue}
           onChange={handleChange}
-          className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
+          className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer"
           style={{
             background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${percentage}%, #e2e8f0 ${percentage}%, #e2e8f0 100%)`,
           }}
         />
-        <div className="flex justify-between text-xs text-slate-400 mt-2 px-1 font-medium">
+        <div className="flex justify-between text-xs text-slate-400 dark:text-slate-500 mt-2 px-1 font-medium">
           <span>{min}</span>
           <span>{max}</span>
         </div>

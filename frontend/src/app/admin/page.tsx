@@ -57,11 +57,11 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="flex-1 w-full bg-slate-50 min-h-full">
+    <div className="flex-1 w-full bg-slate-50 dark:bg-slate-950 min-h-full transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 p-8">
-            <h2 className="text-xl font-bold text-slate-900 text-center mb-6">
+          <div className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-sm border border-gray-100 dark:border-slate-800 p-8">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white text-center mb-6">
               Gestionează utilizatorii
             </h2>
             <DataTable
@@ -85,22 +85,22 @@ export default function AdminDashboard() {
               )}
             />
           </div>
-          <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 p-8 min-h-[300px]">
-            <h2 className="text-xl font-bold text-slate-900 text-center mb-8">
+          <div className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-sm border border-gray-100 dark:border-slate-800 p-8 min-h-[300px]">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white text-center mb-8">
               Culegeri încărcate
             </h2>
             <div className="space-y-4">
               {files.length === 0 ? (
-                <p className="text-sm text-slate-400 text-center py-8">
+                <p className="text-sm text-slate-400 dark:text-slate-500 text-center py-8">
                   Nu există culegeri.
                 </p>
               ) : (
                 files.map((file) => (
                   <div
                     key={file}
-                    className="flex justify-between items-center bg-[#f1f5f9] rounded-xl py-3 px-5"
+                    className="flex justify-between items-center bg-[#f1f5f9] dark:bg-slate-800 rounded-xl py-3 px-5"
                   >
-                    <span className="font-medium text-slate-700 text-[15px]">
+                    <span className="font-medium text-slate-700 dark:text-slate-300 text-[15px]">
                       {file}
                     </span>
                     <button
@@ -118,58 +118,58 @@ export default function AdminDashboard() {
           </div>
         </div>
         <div className="mt-10">
-          <h2 className="text-2xl font-bold text-slate-900 mb-6">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">
             Statistici Platformă
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mb-8">
-            <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
-              <div className="w-11 h-11 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
+            <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 flex items-center gap-4">
+              <div className="w-11 h-11 bg-blue-50 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-xl flex items-center justify-center">
                 <Users className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-xs text-slate-500 font-bold">
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-bold">
                   Utilizatori activi
                 </p>
-                <p className="text-2xl font-extrabold text-slate-900">48</p>
+                <p className="text-2xl font-extrabold text-slate-900 dark:text-white">48</p>
               </div>
             </div>
-            <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
-              <div className="w-11 h-11 bg-green-50 text-green-600 rounded-xl flex items-center justify-center">
+            <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 flex items-center gap-4">
+              <div className="w-11 h-11 bg-green-50 dark:bg-green-900/50 text-green-600 dark:text-green-400 rounded-xl flex items-center justify-center">
                 <FileText className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-xs text-slate-500 font-bold">
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-bold">
                   Simulări generate
                 </p>
-                <p className="text-2xl font-extrabold text-slate-900">312</p>
+                <p className="text-2xl font-extrabold text-slate-900 dark:text-white">312</p>
               </div>
             </div>
-            <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
-              <div className="w-11 h-11 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center">
+            <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 flex items-center gap-4">
+              <div className="w-11 h-11 bg-purple-50 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400 rounded-xl flex items-center justify-center">
                 <BookOpen className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-xs text-slate-500 font-bold">
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-bold">
                   Total grile rezolvate
                 </p>
-                <p className="text-2xl font-extrabold text-slate-900">9,430</p>
+                <p className="text-2xl font-extrabold text-slate-900 dark:text-white">9,430</p>
               </div>
             </div>
-            <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
-              <div className="w-11 h-11 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center">
+            <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 flex items-center gap-4">
+              <div className="w-11 h-11 bg-orange-50 dark:bg-orange-900/50 text-orange-600 dark:text-orange-400 rounded-xl flex items-center justify-center">
                 <TrendingUp className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-xs text-slate-500 font-bold">
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-bold">
                   Media reușitei
                 </p>
-                <p className="text-2xl font-extrabold text-slate-900">76%</p>
+                <p className="text-2xl font-extrabold text-slate-900 dark:text-white">76%</p>
               </div>
             </div>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-              <h3 className="text-lg font-bold text-slate-900 mb-4">
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">
                 Activitate săptămânală
               </h3>
               <div style={{ width: "100%", height: 288 }}>
@@ -190,16 +190,16 @@ export default function AdminDashboard() {
                       <CartesianGrid
                         strokeDasharray="3 3"
                         vertical={false}
-                        stroke="#e2e8f0"
+                        stroke="#334155"
                       />
                       <XAxis
                         dataKey="zi"
-                        tick={{ fontSize: 12, fill: "#64748b" }}
+                        tick={{ fontSize: 12, fill: "#94a3b8" }}
                         tickLine={false}
                         axisLine={false}
                       />
                       <YAxis
-                        tick={{ fontSize: 12, fill: "#64748b" }}
+                        tick={{ fontSize: 12, fill: "#94a3b8" }}
                         tickLine={false}
                         axisLine={false}
                       />
@@ -208,6 +208,8 @@ export default function AdminDashboard() {
                           borderRadius: "12px",
                           border: "none",
                           boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                          backgroundColor: "var(--background)",
+                          color: "var(--foreground)",
                         }}
                       />
                       <Line
@@ -232,8 +234,8 @@ export default function AdminDashboard() {
                 )}
               </div>
             </div>
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-              <h3 className="text-lg font-bold text-slate-900 mb-4">
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">
                 Cele mai populare capitole
               </h3>
               <div style={{ width: "100%", height: 288 }}>
@@ -245,7 +247,7 @@ export default function AdminDashboard() {
                         { capitol: "Analiză Mat.", grile: 380 },
                         { capitol: "Geometrie", grile: 350 },
                         { capitol: "Trigonometrie", grile: 310 },
-                        { capitol: "Probleme din subiecte de admitere", grile: 290 }
+                        { capitol: "Admitere", grile: 290 },
                       ]}
                       margin={{ top: 5, right: 20, left: -20, bottom: 5 }}
                       layout="vertical"
@@ -253,18 +255,18 @@ export default function AdminDashboard() {
                       <CartesianGrid
                         strokeDasharray="3 3"
                         horizontal={false}
-                        stroke="#e2e8f0"
+                        stroke="#334155"
                       />
                       <XAxis
                         type="number"
-                        tick={{ fontSize: 11, fill: "#64748b" }}
+                        tick={{ fontSize: 11, fill: "#94a3b8" }}
                         tickLine={false}
                         axisLine={false}
                       />
                       <YAxis
                         dataKey="capitol"
                         type="category"
-                        tick={{ fontSize: 11, fill: "#64748b" }}
+                        tick={{ fontSize: 11, fill: "#94a3b8" }}
                         tickLine={false}
                         axisLine={false}
                         width={100}
@@ -274,6 +276,8 @@ export default function AdminDashboard() {
                           borderRadius: "12px",
                           border: "none",
                           boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                          backgroundColor: "var(--background)",
+                          color: "var(--foreground)",
                         }}
                       />
                       <Bar
@@ -290,44 +294,44 @@ export default function AdminDashboard() {
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-8">
-            <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+            <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800">
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
-                  <Clock className="w-4 h-4 text-blue-600" />
+                <div className="w-8 h-8 bg-blue-50 dark:bg-blue-900/50 rounded-lg flex items-center justify-center">
+                  <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                 </div>
-                <span className="text-sm font-bold text-slate-700">
+                <span className="text-sm font-bold text-slate-700 dark:text-slate-300">
                   Timp mediu/simulare
                 </span>
               </div>
-              <p className="text-3xl font-extrabold text-slate-900">
+              <p className="text-3xl font-extrabold text-slate-900 dark:text-white">
                 42 <span className="text-lg font-bold text-slate-400">min</span>
               </p>
             </div>
-            <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+            <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800">
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center">
-                  <TrendingUp className="w-4 h-4 text-green-600" />
+                <div className="w-8 h-8 bg-green-50 dark:bg-green-900/50 rounded-lg flex items-center justify-center">
+                  <TrendingUp className="w-4 h-4 text-green-600 dark:text-green-400" />
                 </div>
-                <span className="text-sm font-bold text-slate-700">
+                <span className="text-sm font-bold text-slate-700 dark:text-slate-300">
                   Rata completare
                 </span>
               </div>
-              <p className="text-3xl font-extrabold text-slate-900">
+              <p className="text-3xl font-extrabold text-slate-900 dark:text-white">
                 89<span className="text-lg font-bold text-slate-400">%</span>
               </p>
             </div>
-            <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+            <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800">
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center">
-                  <BarChart3 className="w-4 h-4 text-purple-600" />
+                <div className="w-8 h-8 bg-purple-50 dark:bg-purple-900/50 rounded-lg flex items-center justify-center">
+                  <BarChart3 className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                 </div>
-                <span className="text-sm font-bold text-slate-700">
+                <span className="text-sm font-bold text-slate-700 dark:text-slate-300">
                   Capitol cel mai dificil
                 </span>
               </div>
-              <p className="text-lg font-extrabold text-slate-900">
+              <p className="text-lg font-extrabold text-slate-900 dark:text-white">
                 Analiză Mat.{" "}
-                <span className="text-sm font-bold text-red-500">
+                <span className="text-sm font-bold text-red-500 dark:text-red-400">
                   (58% medie)
                 </span>
               </p>
@@ -337,25 +341,25 @@ export default function AdminDashboard() {
       </div>
       {editingUser && !confirmAction && (
         <div
-          className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center px-4"
+          className="fixed inset-0 bg-black/40 dark:bg-black/60 z-50 flex items-center justify-center px-4"
           onClick={() => setEditingUser(null)}
         >
           <div
-            className="bg-white rounded-[1.5rem] shadow-2xl w-full max-w-sm overflow-hidden"
+            className="bg-white dark:bg-slate-900 rounded-[1.5rem] shadow-2xl w-full max-w-sm overflow-hidden border border-transparent dark:border-slate-800"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="bg-blue-50/50 px-6 py-5 border-b border-blue-100/50 flex items-center justify-between">
+            <div className="bg-blue-50/50 dark:bg-blue-950/50 px-6 py-5 border-b border-blue-100/50 dark:border-blue-800/50 flex items-center justify-between">
               <div>
-                <p className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-0.5">
+                <p className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-0.5">
                   Editare utilizator
                 </p>
-                <p className="text-xl font-bold text-slate-900">
+                <p className="text-xl font-bold text-slate-900 dark:text-white">
                   {editingUser.name}
                 </p>
               </div>
               <button
                 onClick={() => setEditingUser(null)}
-                className="text-slate-400 hover:text-slate-600 transition-colors"
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -363,45 +367,45 @@ export default function AdminDashboard() {
             <div className="px-6 py-5 space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-7 h-7 bg-blue-50 rounded-lg flex items-center justify-center">
-                    <FileText className="w-4 h-4 text-blue-600" />
+                  <div className="w-7 h-7 bg-blue-50 dark:bg-blue-900/50 rounded-lg flex items-center justify-center">
+                    <FileText className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                   </div>
-                  <span className="text-[13px] font-bold text-slate-700">
+                  <span className="text-[13px] font-bold text-slate-700 dark:text-slate-300">
                     Simulări generate
                   </span>
                 </div>
-                <span className="font-extrabold text-slate-900 text-[15px]">
+                <span className="font-extrabold text-slate-900 dark:text-white text-[15px]">
                   {editingUser.simulari}
                 </span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-7 h-7 bg-green-50 rounded-lg flex items-center justify-center">
-                    <CheckSquare className="w-4 h-4 text-green-600" />
+                  <div className="w-7 h-7 bg-green-50 dark:bg-green-900/50 rounded-lg flex items-center justify-center">
+                    <CheckSquare className="w-4 h-4 text-green-600 dark:text-green-400" />
                   </div>
-                  <span className="text-[13px] font-bold text-slate-700">
+                  <span className="text-[13px] font-bold text-slate-700 dark:text-slate-300">
                     Grile rezolvate
                   </span>
                 </div>
-                <span className="font-extrabold text-slate-900 text-[15px]">
+                <span className="font-extrabold text-slate-900 dark:text-white text-[15px]">
                   {editingUser.grile}
                 </span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-7 h-7 bg-purple-50 rounded-lg flex items-center justify-center">
-                    <BarChart3 className="w-4 h-4 text-purple-600" />
+                  <div className="w-7 h-7 bg-purple-50 dark:bg-purple-900/50 rounded-lg flex items-center justify-center">
+                    <BarChart3 className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                   </div>
-                  <span className="text-[13px] font-bold text-slate-700">
+                  <span className="text-[13px] font-bold text-slate-700 dark:text-slate-300">
                     Media simulărilor
                   </span>
                 </div>
-                <span className="font-extrabold text-purple-600 text-[15px]">
+                <span className="font-extrabold text-purple-600 dark:text-purple-400 text-[15px]">
                   {editingUser.media}
                 </span>
               </div>
             </div>
-            <div className="px-6 py-5 border-t border-slate-100 bg-slate-50/50 space-y-3">
+            <div className="px-6 py-5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50 space-y-3">
               <button
                 onClick={() =>
                   setConfirmAction({
@@ -409,7 +413,7 @@ export default function AdminDashboard() {
                     target: editingUser.name,
                   })
                 }
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-xl transition-colors"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-bold text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-xl transition-colors"
               >
                 <ShieldCheck className="w-4 h-4" />
                 Promovează la Admin
@@ -421,7 +425,7 @@ export default function AdminDashboard() {
                     target: editingUser.name,
                   })
                 }
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded-xl transition-colors"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/50 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-xl transition-colors"
               >
                 <Trash2 className="w-4 h-4" />
                 Șterge Contul
@@ -432,18 +436,18 @@ export default function AdminDashboard() {
       )}
       {confirmAction && (
         <div
-          className="fixed inset-0 bg-black/40 z-[60] flex items-center justify-center px-4"
+          className="fixed inset-0 bg-black/40 dark:bg-black/60 z-[60] flex items-center justify-center px-4"
           onClick={() => setConfirmAction(null)}
         >
           <div
-            className="bg-white rounded-[1.5rem] shadow-2xl w-full max-w-sm overflow-hidden"
+            className="bg-white dark:bg-slate-900 rounded-[1.5rem] shadow-2xl w-full max-w-sm overflow-hidden border border-transparent dark:border-slate-800"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-6 py-8 text-center">
               <div
                 className={`w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4 ${confirmAction.type === "promote"
-                  ? "bg-blue-100 text-blue-600"
-                  : "bg-red-100 text-red-600"
+                  ? "bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400"
+                  : "bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400"
                   }`}
               >
                 {confirmAction.type === "promote" ? (
@@ -453,12 +457,12 @@ export default function AdminDashboard() {
                 )}
               </div>
 
-              <h3 className="text-xl font-bold text-slate-900 mb-2">
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
                 {confirmAction.type === "promote" && "Promovare la Admin"}
                 {confirmAction.type === "deleteUser" && "Ștergere utilizator"}
                 {confirmAction.type === "deleteFile" && "Ștergere culegere"}
               </h3>
-              <p className="text-[13px] leading-relaxed text-slate-500 mb-6 px-2 font-medium">
+              <p className="text-[13px] leading-relaxed text-slate-500 dark:text-slate-400 mb-6 px-2 font-medium">
                 {confirmAction.type === "promote" && (
                   <>
                     Ești sigur că vrei să promovezi{" "}
@@ -484,7 +488,7 @@ export default function AdminDashboard() {
               <div className="flex gap-3">
                 <button
                   onClick={() => setConfirmAction(null)}
-                  className="flex-1 px-4 py-2.5 text-sm font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+                  className="flex-1 px-4 py-2.5 text-sm font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-colors"
                 >
                   Anulează
                 </button>

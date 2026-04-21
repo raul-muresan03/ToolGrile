@@ -2,13 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("Student");
   const [errors, setErrors] = useState<{ email?: string; password?: string }>(
     {},
   );
@@ -39,19 +37,19 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex-1 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-slate-50">
-      <div className="max-w-[460px] w-full bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-100 flex flex-col">
+    <div className="flex-1 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-slate-50 dark:bg-slate-950 transition-colors duration-300">
+      <div className="max-w-[460px] w-full bg-white dark:bg-slate-900 rounded-3xl shadow-xl dark:shadow-slate-950/50 overflow-hidden border border-slate-100 dark:border-slate-800 flex flex-col">
         <div className="bg-[#0066ff] px-8 pt-10 pb-8 flex flex-col items-center text-center">
           <h1 className="text-4xl font-bold text-white mb-3">ToolGrile</h1>
           <p className="text-white text-[15px] leading-snug px-2 opacity-95 font-medium">
-            Platformă de simulări grile pentru admitere la medicină generală UMF
+            Platformă de simulări grile pentru admiterea la UTCN
           </p>
         </div>
         <div className="px-10 py-8">
           <form className="space-y-5">
             <div>
               <label
-                className="block text-[13px] font-bold text-slate-800 mb-1.5"
+                className="block text-[13px] font-bold text-slate-800 dark:text-slate-200 mb-1.5"
                 htmlFor="email"
               >
                 Email
@@ -64,11 +62,11 @@ export default function LoginPage() {
                   setEmail(e.target.value);
                   setErrors((prev) => ({ ...prev, email: undefined }));
                 }}
-                className={`w-full px-3 py-2 border rounded-lg text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition ${errors.email ? "border-red-400 bg-red-50/50" : "border-slate-200"}`}
+                className={`w-full px-3 py-2 border rounded-lg text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition ${errors.email ? "border-red-400 bg-red-50/50 dark:bg-red-950/50" : "border-slate-200 dark:border-slate-700"}`}
                 required
               />
               {errors.email && (
-                <p className="text-red-500 text-xs font-medium mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs font-medium mt-1">
                   {errors.email}
                 </p>
               )}
@@ -76,7 +74,7 @@ export default function LoginPage() {
 
             <div>
               <label
-                className="block text-[13px] font-bold text-slate-800 mb-1.5"
+                className="block text-[13px] font-bold text-slate-800 dark:text-slate-200 mb-1.5"
                 htmlFor="password"
               >
                 Parola
@@ -89,11 +87,11 @@ export default function LoginPage() {
                   setPassword(e.target.value);
                   setErrors((prev) => ({ ...prev, password: undefined }));
                 }}
-                className={`w-full px-3 py-2 border rounded-lg text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition ${errors.password ? "border-red-400 bg-red-50/50" : "border-slate-200"}`}
+                className={`w-full px-3 py-2 border rounded-lg text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition ${errors.password ? "border-red-400 bg-red-50/50 dark:bg-red-950/50" : "border-slate-200 dark:border-slate-700"}`}
                 required
               />
               {errors.password && (
-                <p className="text-red-500 text-xs font-medium mt-1">
+                <p className="text-red-500 dark:text-red-400 text-xs font-medium mt-1">
                   {errors.password}
                 </p>
               )}
