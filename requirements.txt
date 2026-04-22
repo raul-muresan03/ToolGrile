@@ -6,3 +6,5 @@ pytesseract
 pillow
 lxml
 numpy
+fastapi
+uvicorn
