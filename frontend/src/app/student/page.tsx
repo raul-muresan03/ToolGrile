@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Check, Calculator, Loader2 } from "lucide-react";
 import RangeSlider from "@/components/RangeSlider";
@@ -8,7 +8,7 @@ import RangeSlider from "@/components/RangeSlider";
 const API_URL = "http://localhost:8000";
 
 interface CustomCheckboxProps {
-  label: string;
+  label: React.ReactNode;
   checked: boolean;
   onChange: (val: boolean) => void;
   renderWeights?: React.ReactNode;
@@ -104,7 +104,9 @@ export default function StudentDashboard() {
   const router = useRouter();
   const [numQuizzes, setNumQuizzes] = useState(30);
   const [isLoading, setIsLoading] = useState(false);
+  const [isPageLoading, setIsPageLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [chapterCounts, setChapterCounts] = useState<Record<string, number>>({});
 
   const [selectedChapters, setSelectedChapters] = useState<Record<string, boolean>>(
     MATH_CHAPTERS.reduce((acc, ch) => ({ ...acc, [ch.key]: false }), {}),
@@ -113,6 +115,26 @@ export default function StudentDashboard() {
   const [chapterWeights, setChapterWeights] = useState<Record<string, string>>(
     MATH_CHAPTERS.reduce((acc, ch) => ({ ...acc, [ch.key]: "1.0" }), {}),
   );
+
+  useEffect(() => {
+    const fetchChapters = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/chapters`);
+        if (!res.ok) throw new Error("Nu s-au putut încărca capitolele.");
+        const data = await res.json();
+        const counts: Record<string, number> = {};
+        Object.entries(data.chapters).forEach(([key, val]: [string, any]) => {
+          counts[key] = val.total_grids;
+        });
+        setChapterCounts(counts);
+      } catch (err: any) {
+        console.error(err);
+      } finally {
+        setIsPageLoading(false);
+      }
+    };
+    fetchChapters();
+  }, []);
 
   const estimations = useMemo(() => {
     const results: { key: string; label: string; color: string; count: number }[] = [];
@@ -143,6 +165,14 @@ export default function StudentDashboard() {
   const totalEstimated = estimations.reduce((s, e) => s + e.count, 0);
 
   const hasSelection = MATH_CHAPTERS.some((ch) => selectedChapters[ch.key]);
+
+  if (isPageLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-gray-200 dark:bg-slate-950">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+      </div>
+    );
+  }
 
   const handleGenerate = async () => {
     if (!hasSelection) {
@@ -209,7 +239,14 @@ export default function StudentDashboard() {
                 {MATH_CHAPTERS.map((ch) => (
                   <CustomCheckbox
                     key={ch.key}
-                    label={ch.label}
+                    label={
+                      <span>
+                        {ch.label}{" "}
+                        <span className="text-[10px] text-slate-400 font-normal">
+                          ({chapterCounts[ch.key] || 0} disponibile)
+                        </span>
+                      </span>
+                    }
                     checked={selectedChapters[ch.key] || false}
                     onChange={(val) =>
                       setSelectedChapters({ ...selectedChapters, [ch.key]: val })
