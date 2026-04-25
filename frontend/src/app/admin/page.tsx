@@ -22,21 +22,11 @@ interface UserData {
   media: string;
 }
 
-const INITIAL_USERS: UserData[] = [
-  { name: "User1", simulari: 15, grile: 450, media: "85%" },
-  { name: "User2", simulari: 8, grile: 210, media: "72%" },
-  { name: "Maria Popescu", simulari: 22, grile: 680, media: "91%" },
-  { name: "Andrei Ionescu", simulari: 5, grile: 150, media: "68%" },
-  { name: "Elena Vasilescu", simulari: 18, grile: 540, media: "79%" },
-  { name: "Cristian Enescu", simulari: 31, grile: 930, media: "88%" },
-  { name: "Diana Munteanu", simulari: 12, grile: 360, media: "76%" },
-  { name: "Alexandru Radu", simulari: 9, grile: 270, media: "82%" },
-];
-
 const INITIAL_FILES = ["culegere_grile_utcn.pdf"];
 
 export default function AdminDashboard() {
-  const [users, setUsers] = useState<UserData[]>(INITIAL_USERS);
+  const [users, setUsers] = useState<UserData[]>([]);
+  const [usersLoading, setUsersLoading] = useState(true);
   const [files, setFiles] = useState<string[]>(INITIAL_FILES);
   const [mounted, setMounted] = useState(false);
   const [chapterData, setChapterData] = useState<{ capitol: string; grile: number }[]>([]);
@@ -44,6 +34,22 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/users`);
+        if (!res.ok) return;
+        const data = await res.json();
+        setUsers(data.users);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setUsersLoading(false);
+      }
+    };
+    fetchUsers();
   }, []);
 
   useEffect(() => {
@@ -98,26 +104,36 @@ export default function AdminDashboard() {
             <h2 className="text-xl font-bold text-slate-900 dark:text-white text-center mb-6">
               Gestionează utilizatorii
             </h2>
-            <DataTable
-              data={users}
-              columns={
-                [
-                  { key: "name", title: "Nume", sortable: true },
-                  { key: "simulari", title: "Simulări", sortable: true },
-                  { key: "grile", title: "Grile", sortable: true },
-                  { key: "media", title: "Media", sortable: true },
-                ] as Column<UserData>[]
-              }
-              pageSize={4}
-              renderActions={(row: UserData) => (
-                <button
-                  onClick={() => setEditingUser(row)}
-                  className="bg-[#0066ff] hover:bg-blue-700 transition-colors w-7 h-7 rounded-lg flex items-center justify-center text-white shadow-sm"
-                >
-                  <Pencil className="w-3.5 h-3.5" strokeWidth={2.5} />
-                </button>
-              )}
-            />
+            {usersLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+              </div>
+            ) : users.length === 0 ? (
+              <p className="text-sm text-slate-400 dark:text-slate-500 text-center py-12">
+                Niciun utilizator încă. Datele vor apărea după prima simulare finalizată.
+              </p>
+            ) : (
+              <DataTable
+                data={users}
+                columns={
+                  [
+                    { key: "name", title: "Nume", sortable: true },
+                    { key: "simulari", title: "Simulări", sortable: true },
+                    { key: "grile", title: "Grile", sortable: true },
+                    { key: "media", title: "Media", sortable: true },
+                  ] as Column<UserData>[]
+                }
+                pageSize={4}
+                renderActions={(row: UserData) => (
+                  <button
+                    onClick={() => setEditingUser(row)}
+                    className="bg-[#0066ff] hover:bg-blue-700 transition-colors w-7 h-7 rounded-lg flex items-center justify-center text-white shadow-sm"
+                  >
+                    <Pencil className="w-3.5 h-3.5" strokeWidth={2.5} />
+                  </button>
+                )}
+              />
+            )}
           </div>
           <div className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-sm border border-gray-100 dark:border-slate-800 p-8 min-h-[300px]">
             <h2 className="text-xl font-bold text-slate-900 dark:text-white text-center mb-8">
