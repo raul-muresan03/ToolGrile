@@ -1,9 +1,19 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Pencil, X, AlertTriangle, FileText, CheckSquare, BarChart3, ShieldCheck, Trash2, Users, Clock, TrendingUp, BookOpen, } from "lucide-react";
+import { Pencil, X, AlertTriangle, FileText, CheckSquare, BarChart3, ShieldCheck, Trash2, Users, Clock, TrendingUp, BookOpen, Loader2 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, } from "recharts";
 import DataTable, { Column } from "@/components/DataTable";
+
+const API_URL = "http://localhost:8000";
+
+const CHAPTER_LABELS: Record<string, string> = {
+  algebra: "Algebră",
+  analiza: "Analiză Mat.",
+  geometrie: "Geometrie",
+  trigonometrie: "Trigonometrie",
+  admitere: "Admitere",
+};
 
 interface UserData {
   name: string;
@@ -29,9 +39,33 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState<UserData[]>(INITIAL_USERS);
   const [files, setFiles] = useState<string[]>(INITIAL_FILES);
   const [mounted, setMounted] = useState(false);
+  const [chapterData, setChapterData] = useState<{ capitol: string; grile: number }[]>([]);
+  const [totalGrile, setTotalGrile] = useState(0);
 
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const fetchChapters = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/chapters`);
+        if (!res.ok) return;
+        const data = await res.json();
+        const barData: { capitol: string; grile: number }[] = [];
+        let sum = 0;
+        Object.entries(data.chapters).forEach(([key, val]: [string, any]) => {
+          barData.push({ capitol: CHAPTER_LABELS[key] || key, grile: val.total_grids });
+          sum += val.total_grids;
+        });
+        barData.sort((a, b) => b.grile - a.grile);
+        setChapterData(barData);
+        setTotalGrile(sum);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchChapters();
   }, []);
 
   const [editingUser, setEditingUser] = useState<UserData | null>(null);
@@ -150,9 +184,9 @@ export default function AdminDashboard() {
               </div>
               <div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-bold">
-                  Total grile rezolvate
+                  Total grile disponibile
                 </p>
-                <p className="text-2xl font-extrabold text-slate-900 dark:text-white">9,430</p>
+                <p className="text-2xl font-extrabold text-slate-900 dark:text-white">{totalGrile.toLocaleString()}</p>
               </div>
             </div>
             <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 flex items-center gap-4">
@@ -236,19 +270,13 @@ export default function AdminDashboard() {
             </div>
             <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800">
               <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">
-                Cele mai populare capitole
+                Grile disponibile per capitol
               </h3>
               <div style={{ width: "100%", height: 288 }}>
-                {mounted && (
+                {mounted && chapterData.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
-                      data={[
-                        { capitol: "Algebră", grile: 420 },
-                        { capitol: "Analiză Mat.", grile: 380 },
-                        { capitol: "Geometrie", grile: 350 },
-                        { capitol: "Trigonometrie", grile: 310 },
-                        { capitol: "Admitere", grile: 290 },
-                      ]}
+                      data={chapterData}
                       margin={{ top: 5, right: 20, left: -20, bottom: 5 }}
                       layout="vertical"
                     >
@@ -282,13 +310,17 @@ export default function AdminDashboard() {
                       />
                       <Bar
                         dataKey="grile"
-                        name="Grile rezolvate"
+                        name="Grile disponibile"
                         fill="#0066ff"
                         radius={[0, 8, 8, 0]}
                         barSize={20}
                       />
                     </BarChart>
                   </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+                  </div>
                 )}
               </div>
             </div>
