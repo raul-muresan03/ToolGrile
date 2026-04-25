@@ -1,8 +1,11 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Check, Calculator } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Check, Calculator, Loader2 } from "lucide-react";
 import RangeSlider from "@/components/RangeSlider";
+
+const API_URL = "http://localhost:8000";
 
 interface CustomCheckboxProps {
   label: string;
@@ -98,7 +101,10 @@ const COLOR_MAP: Record<string, { bg: string; border: string; text: string; dot:
 };
 
 export default function StudentDashboard() {
+  const router = useRouter();
   const [numQuizzes, setNumQuizzes] = useState(30);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const [selectedChapters, setSelectedChapters] = useState<Record<string, boolean>>(
     MATH_CHAPTERS.reduce((acc, ch) => ({ ...acc, [ch.key]: false }), {}),
@@ -135,6 +141,51 @@ export default function StudentDashboard() {
   }, [selectedChapters, chapterWeights, numQuizzes]);
 
   const totalEstimated = estimations.reduce((s, e) => s + e.count, 0);
+
+  const hasSelection = MATH_CHAPTERS.some((ch) => selectedChapters[ch.key]);
+
+  const handleGenerate = async () => {
+    if (!hasSelection) {
+      setError("Selectează cel puțin un capitol.");
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    const chaptersPayload: Record<string, { weight: number }> = {};
+    MATH_CHAPTERS.forEach((ch) => {
+      if (selectedChapters[ch.key]) {
+        chaptersPayload[ch.key] = {
+          weight: parseFloat(chapterWeights[ch.key] || "1.0"),
+        };
+      }
+    });
+
+    try {
+      const res = await fetch(`${API_URL}/api/simulation/generate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          total_quizzes: numQuizzes,
+          chapters: chaptersPayload,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.detail || "Eroare la generarea simulării.");
+      }
+
+      const data = await res.json();
+      localStorage.setItem("toolgrile_session", JSON.stringify(data));
+      router.push(`/student/quiz`);
+    } catch (err: any) {
+      setError(err.message || "Nu s-a putut contacta serverul.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="flex-1 w-full bg-gray-200 dark:bg-slate-950 min-h-full transition-colors duration-300">
@@ -238,9 +289,20 @@ export default function StudentDashboard() {
           </div>
         )}
 
+        {error && (
+          <div className="max-w-md mx-auto mb-6 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 text-sm font-medium px-4 py-3 rounded-xl text-center">
+            {error}
+          </div>
+        )}
+
         <div className="flex justify-center pb-10">
-          <button className="bg-[#0066ff] hover:bg-blue-700 text-white font-bold text-[16px] px-12 py-3.5 rounded-full shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5">
-            Generează simularea
+          <button
+            onClick={handleGenerate}
+            disabled={isLoading || !hasSelection}
+            className="bg-[#0066ff] hover:bg-blue-700 disabled:bg-slate-300 dark:disabled:bg-slate-700 disabled:cursor-not-allowed text-white font-bold text-[16px] px-12 py-3.5 rounded-full shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 disabled:hover:translate-y-0 disabled:hover:shadow-lg flex items-center gap-2"
+          >
+            {isLoading && <Loader2 className="w-5 h-5 animate-spin" />}
+            {isLoading ? "Se generează..." : "Generează simularea"}
           </button>
         </div>
       </div>
