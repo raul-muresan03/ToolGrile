@@ -69,6 +69,18 @@ export default function QuizPlayerPage() {
     return () => clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, []);
+
   if (!session) {
     return (
       <div className="flex-1 flex items-center justify-center bg-gray-200 dark:bg-slate-950">
@@ -201,11 +213,10 @@ export default function QuizPlayerPage() {
                       <button
                         key={opt}
                         onClick={() => handleAnswer(gridId, opt)}
-                        className={`w-12 h-12 rounded-xl text-sm font-extrabold transition-all duration-200 border-2 ${
-                          isSelected
-                            ? "bg-[#0066ff] border-[#0066ff] text-white shadow-md scale-105"
-                            : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:border-blue-300 dark:hover:border-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30"
-                        }`}
+                        className={`w-12 h-12 rounded-xl text-sm font-extrabold transition-all duration-200 border-2 ${isSelected
+                          ? "bg-[#0066ff] border-[#0066ff] text-white shadow-md scale-105"
+                          : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:border-blue-300 dark:hover:border-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+                          }`}
                       >
                         {opt}
                       </button>
@@ -255,13 +266,12 @@ export default function QuizPlayerPage() {
               <button
                 key={i}
                 onClick={() => setCurrentIndex(i)}
-                className={`w-8 h-8 rounded-lg text-[11px] font-bold transition-all ${
-                  isCurrent
-                    ? "bg-[#0066ff] text-white shadow-md scale-110"
-                    : allAnswered
-                      ? "bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800"
-                      : "bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700"
-                }`}
+                className={`w-8 h-8 rounded-lg text-[11px] font-bold transition-all ${isCurrent
+                  ? "bg-[#0066ff] text-white shadow-md scale-110"
+                  : allAnswered
+                    ? "bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800"
+                    : "bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700"
+                  }`}
               >
                 {i + 1}
               </button>
