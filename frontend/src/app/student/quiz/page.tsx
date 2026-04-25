@@ -111,12 +111,17 @@ export default function QuizPlayerPage() {
     setIsSubmitting(true);
     setError(null);
 
+    const storedUser = localStorage.getItem("toolgrile_user");
+    const username = storedUser ? JSON.parse(storedUser).name || "anonim" : "anonim";
+
     const payload = {
       session_id: session.session_id,
       answers: Object.entries(answers).map(([grid_id, answer]) => ({
         grid_id,
         answer,
       })),
+      username,
+      elapsed,
     };
 
     try {

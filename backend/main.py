@@ -3,11 +3,15 @@ import random
 import re
 import uvicorn
 from pathlib import Path
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
-from typing import Dict, List
+from typing import Dict, List, Optional
+from sqlalchemy.orm import Session
+
+from database import engine, get_db, Base
+from models import User, Simulation
 
 ROOT_DIR = Path(__file__).parent.parent
 PROCESSED_DIR = ROOT_DIR / "data" / "processed"
@@ -33,6 +37,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.on_event("startup")
+def on_startup():
+    Base.metadata.create_all(bind=engine)
 
 
 def _load_answers() -> dict:
@@ -84,6 +93,8 @@ class StudentAnswer(BaseModel):
 class SimulationResult(BaseModel):
     session_id: str
     answers: List[StudentAnswer]
+    username: Optional[str] = None
+    elapsed: Optional[int] = 0
 
 
 _active_sessions: Dict[str, list] = {}
@@ -183,7 +194,7 @@ async def generate_simulation(config: SimulationConfig):
 
 
 @app.post("/api/simulation/grade")
-async def grade_simulation(result: SimulationResult):
+async def grade_simulation(result: SimulationResult, db: Session = Depends(get_db)):
     session = _active_sessions.get(result.session_id)
     if not session:
         raise HTTPException(status_code=404, detail="Session not found or expired.")
@@ -211,6 +222,25 @@ async def grade_simulation(result: SimulationResult):
 
     score = round((correct / total) * 10, 2) if total > 0 else 0
 
+    if result.username:
+        user = db.query(User).filter(User.username == result.username).first()
+        if not user:
+            user = User(username=result.username)
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+
+        sim = Simulation(
+            session_id=result.session_id,
+            user_id=user.id,
+            total_grids=total,
+            correct=correct,
+            score=score,
+            elapsed_seconds=result.elapsed or 0,
+        )
+        db.add(sim)
+        db.commit()
+
     del _active_sessions[result.session_id]
 
     return {
@@ -219,6 +249,24 @@ async def grade_simulation(result: SimulationResult):
         "total": total,
         "details": details,
     }
+
+
+@app.get("/api/users")
+async def list_users(db: Session = Depends(get_db)):
+    users = db.query(User).all()
+    result = []
+    for u in users:
+        sims = db.query(Simulation).filter(Simulation.user_id == u.id).all()
+        total_sims = len(sims)
+        total_grile = sum(s.total_grids for s in sims)
+        avg_score = round(sum(s.score for s in sims) / total_sims, 1) if total_sims > 0 else 0
+        result.append({
+            "name": u.username,
+            "simulari": total_sims,
+            "grile": total_grile,
+            "media": f"{avg_score}",
+        })
+    return {"users": result}
 
 
 @app.get("/api/grid/{chapter}/{filename}")
