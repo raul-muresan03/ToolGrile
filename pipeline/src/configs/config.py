@@ -1,8 +1,7 @@
 from pathlib import Path
 
-ROOT_DIR = Path(__file__).parent.parent.parent
+ROOT_DIR = Path(__file__).parent.parent.parent.parent
 DATA_DIR = ROOT_DIR / "data"
-OUTPUT_DIR = ROOT_DIR / "outputs"
 
 RAW_DIR = DATA_DIR / "raw"
 TEMP_DIR = DATA_DIR / "temp"
@@ -22,7 +21,7 @@ MATH_CHAPTERS = {
     "analiza": PROCESSED_DIR / "analiza",
     "geometrie": PROCESSED_DIR / "geometrie",
     "trigonometrie": PROCESSED_DIR / "trigonometrie",
-    "subiecte_admitere_simulare": PROCESSED_DIR / "subiecte_admitere_simulare",
+    "admitere": PROCESSED_DIR / "admitere",
     "unknown_chapter": PROCESSED_DIR / "unknown"
 }
 
@@ -31,7 +30,7 @@ CHAPTER_PAGES = {
     "analiza": (39, 77),
     "geometrie": (79, 83),
     "trigonometrie": (85, 94),
-    "subiecte_admitere_simulare": (95, 148)
+    "admitere": (95, 148)
 }
 
 ANSWERS_PAGES = (153, 156)
@@ -45,7 +44,7 @@ def get_chapter_by_page(page_num):
 
 all_dirs = [
     RAW_DIR, TEMP_DIR, PAGES_DIR, RAW_QUIZZES_DIR,
-    INDEXED_QUIZZES_DIR, ANSWER_BBOXES, PROCESSED_DIR, OUTPUT_DIR
+    INDEXED_QUIZZES_DIR, ANSWER_BBOXES, PROCESSED_DIR
 ] + list(MATH_CHAPTERS.values())
 
 for path in all_dirs:

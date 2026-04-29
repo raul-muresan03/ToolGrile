@@ -6,6 +6,7 @@ from pathlib import Path
 from multiprocessing import Pool
 from collections import defaultdict
 
+sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'src')))
 
 from src.pdf2image import convert_pdf_to_images

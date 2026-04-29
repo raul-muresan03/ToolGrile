@@ -17,13 +17,18 @@ ROOT_DIR = Path(__file__).parent.parent
 PROCESSED_DIR = ROOT_DIR / "data" / "processed"
 ANSWERS_PATH = PROCESSED_DIR / "final_answers.json"
 
-CHAPTER_DIRS = {
-    "algebra": PROCESSED_DIR / "algebra",
-    "analiza": PROCESSED_DIR / "analiza",
-    "geometrie": PROCESSED_DIR / "geometrie",
-    "trigonometrie": PROCESSED_DIR / "trigonometrie",
-    "admitere": PROCESSED_DIR / "subiecte_admitere_simulare",
-}
+def get_chapter_dirs():
+    """Scanează dinamic folderul data/processed pentru a identifica capitolele disponibile."""
+    chapters = {}
+    if not PROCESSED_DIR.exists():
+        return chapters
+
+    for item in PROCESSED_DIR.iterdir():
+        if item.is_dir() and item.name not in ["unknown", "db"]:
+            chapters[item.name] = item
+    return chapters
+
+CHAPTER_DIRS = get_chapter_dirs()
 
 app = FastAPI(
     title="ToolGrile API",
