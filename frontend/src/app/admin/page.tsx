@@ -22,15 +22,22 @@ interface UserData {
   media: string;
 }
 
-const INITIAL_FILES = ["culegere_grile_utcn.pdf"];
-
 export default function AdminDashboard() {
   const [users, setUsers] = useState<UserData[]>([]);
   const [usersLoading, setUsersLoading] = useState(true);
-  const [files, setFiles] = useState<string[]>(INITIAL_FILES);
   const [mounted, setMounted] = useState(false);
   const [chapterData, setChapterData] = useState<{ capitol: string; grile: number }[]>([]);
   const [totalGrile, setTotalGrile] = useState(0);
+  const [stats, setStats] = useState({
+    total_users: 0,
+    total_simulations: 0,
+    total_grids_solved: 0,
+    total_grids_generated: 0,
+    total_study_hours: 0,
+    avg_score: 0,
+    avg_elapsed_min: 0,
+    activity_chart: [],
+  });
 
   useEffect(() => {
     setMounted(true);
@@ -50,6 +57,20 @@ export default function AdminDashboard() {
       }
     };
     fetchUsers();
+  }, []);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/stats`);
+        if (!res.ok) return;
+        const data = await res.json();
+        setStats(data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchStats();
   }, []);
 
   useEffect(() => {
@@ -76,7 +97,7 @@ export default function AdminDashboard() {
 
   const [editingUser, setEditingUser] = useState<UserData | null>(null);
   const [confirmAction, setConfirmAction] = useState<{
-    type: "promote" | "deleteUser" | "deleteFile";
+    type: "promote" | "deleteUser";
     target: string;
   } | null>(null);
 
@@ -91,15 +112,10 @@ export default function AdminDashboard() {
     setConfirmAction(null);
   };
 
-  const handleDeleteFile = (fileName: string) => {
-    setFiles((prev) => prev.filter((f) => f !== fileName));
-    setConfirmAction(null);
-  };
-
   return (
     <div className="flex-1 w-full bg-slate-50 dark:bg-slate-950 min-h-full transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 gap-8">
           <div className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-sm border border-gray-100 dark:border-slate-800 p-8">
             <h2 className="text-xl font-bold text-slate-900 dark:text-white text-center mb-6">
               Gestionează utilizatorii
@@ -135,37 +151,6 @@ export default function AdminDashboard() {
               />
             )}
           </div>
-          <div className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-sm border border-gray-100 dark:border-slate-800 p-8 min-h-[300px]">
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white text-center mb-8">
-              Culegeri încărcate
-            </h2>
-            <div className="space-y-4">
-              {files.length === 0 ? (
-                <p className="text-sm text-slate-400 dark:text-slate-500 text-center py-8">
-                  Nu există culegeri.
-                </p>
-              ) : (
-                files.map((file) => (
-                  <div
-                    key={file}
-                    className="flex justify-between items-center bg-[#f1f5f9] dark:bg-slate-800 rounded-xl py-3 px-5"
-                  >
-                    <span className="font-medium text-slate-700 dark:text-slate-300 text-[15px]">
-                      {file}
-                    </span>
-                    <button
-                      onClick={() =>
-                        setConfirmAction({ type: "deleteFile", target: file })
-                      }
-                      className="bg-[#0066ff] hover:bg-blue-700 transition-colors w-5 h-5 rounded-full flex items-center justify-center text-white shadow-sm"
-                    >
-                      <X className="w-3 h-3" strokeWidth={3} />
-                    </button>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
         </div>
         <div className="mt-10">
           <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">
@@ -180,7 +165,7 @@ export default function AdminDashboard() {
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-bold">
                   Utilizatori activi
                 </p>
-                <p className="text-2xl font-extrabold text-slate-900 dark:text-white">48</p>
+                <p className="text-2xl font-extrabold text-slate-900 dark:text-white">{stats.total_users}</p>
               </div>
             </div>
             <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 flex items-center gap-4">
@@ -191,7 +176,7 @@ export default function AdminDashboard() {
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-bold">
                   Simulări generate
                 </p>
-                <p className="text-2xl font-extrabold text-slate-900 dark:text-white">312</p>
+                <p className="text-2xl font-extrabold text-slate-900 dark:text-white">{stats.total_simulations}</p>
               </div>
             </div>
             <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 flex items-center gap-4">
@@ -207,13 +192,13 @@ export default function AdminDashboard() {
             </div>
             <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 flex items-center gap-4">
               <div className="w-11 h-11 bg-orange-50 dark:bg-orange-900/50 text-orange-600 dark:text-orange-400 rounded-xl flex items-center justify-center">
-                <TrendingUp className="w-5 h-5" />
+                <Clock className="w-5 h-5" />
               </div>
               <div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-bold">
-                  Media reușitei
+                  Total Ore Studiu
                 </p>
-                <p className="text-2xl font-extrabold text-slate-900 dark:text-white">76%</p>
+                <p className="text-2xl font-extrabold text-slate-900 dark:text-white">{stats.total_study_hours}<span className="text-lg font-bold text-slate-400"> h</span></p>
               </div>
             </div>
           </div>
@@ -226,15 +211,7 @@ export default function AdminDashboard() {
                 {mounted && (
                   <ResponsiveContainer width="100%" height={288}>
                     <LineChart
-                      data={[
-                        { zi: "Lun", studenti: 12, simulari: 20 },
-                        { zi: "Mar", studenti: 19, simulari: 38 },
-                        { zi: "Mie", studenti: 15, simulari: 29 },
-                        { zi: "Joi", studenti: 22, simulari: 45 },
-                        { zi: "Vin", studenti: 30, simulari: 60 },
-                        { zi: "Sâm", studenti: 45, simulari: 90 },
-                        { zi: "Dum", studenti: 38, simulari: 72 },
-                      ]}
+                      data={stats.activity_chart}
                       margin={{ top: 5, right: 20, left: -20, bottom: 5 }}
                     >
                       <CartesianGrid
@@ -341,47 +318,33 @@ export default function AdminDashboard() {
               </div>
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-8">
             <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800">
               <div className="flex items-center gap-3 mb-2">
                 <div className="w-8 h-8 bg-blue-50 dark:bg-blue-900/50 rounded-lg flex items-center justify-center">
                   <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                 </div>
                 <span className="text-sm font-bold text-slate-700 dark:text-slate-300">
-                  Timp mediu/simulare
+                  Timp mediu / grilă
                 </span>
               </div>
               <p className="text-3xl font-extrabold text-slate-900 dark:text-white">
-                42 <span className="text-lg font-bold text-slate-400">min</span>
-              </p>
-            </div>
-            <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 bg-green-50 dark:bg-green-900/50 rounded-lg flex items-center justify-center">
-                  <TrendingUp className="w-4 h-4 text-green-600 dark:text-green-400" />
-                </div>
-                <span className="text-sm font-bold text-slate-700 dark:text-slate-300">
-                  Rata completare
-                </span>
-              </div>
-              <p className="text-3xl font-extrabold text-slate-900 dark:text-white">
-                89<span className="text-lg font-bold text-slate-400">%</span>
+                {stats.total_grids_generated > 0 && stats.total_simulations > 0
+                  ? Math.round((stats.avg_elapsed_min * 60) / (stats.total_grids_generated / stats.total_simulations))
+                  : 0} <span className="text-lg font-bold text-slate-400">sec</span>
               </p>
             </div>
             <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800">
               <div className="flex items-center gap-3 mb-2">
                 <div className="w-8 h-8 bg-purple-50 dark:bg-purple-900/50 rounded-lg flex items-center justify-center">
-                  <BarChart3 className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                  <Clock className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                 </div>
                 <span className="text-sm font-bold text-slate-700 dark:text-slate-300">
-                  Capitol cel mai dificil
+                  Timp mediu / simulare
                 </span>
               </div>
-              <p className="text-lg font-extrabold text-slate-900 dark:text-white">
-                Analiză Mat.{" "}
-                <span className="text-sm font-bold text-red-500 dark:text-red-400">
-                  (58% medie)
-                </span>
+              <p className="text-3xl font-extrabold text-slate-900 dark:text-white">
+                {stats.avg_elapsed_min} <span className="text-lg font-bold text-slate-400">min</span>
               </p>
             </div>
           </div>
@@ -508,7 +471,6 @@ export default function AdminDashboard() {
               <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
                 {confirmAction.type === "promote" && "Promovare la Admin"}
                 {confirmAction.type === "deleteUser" && "Ștergere utilizator"}
-                {confirmAction.type === "deleteFile" && "Ștergere culegere"}
               </h3>
               <p className="text-[13px] leading-relaxed text-slate-500 dark:text-slate-400 mb-6 px-2 font-medium">
                 {confirmAction.type === "promote" && (
@@ -525,13 +487,6 @@ export default function AdminDashboard() {
                     permanent!
                   </>
                 )}
-                {confirmAction.type === "deleteFile" && (
-                  <>
-                    Ești sigur că vrei să ștergi fișierul{" "}
-                    <strong>{confirmAction.target}</strong>? Acțiunea este
-                    ireversibilă.
-                  </>
-                )}
               </p>
               <div className="flex gap-3">
                 <button
@@ -546,8 +501,6 @@ export default function AdminDashboard() {
                       handlePromoteUser(confirmAction.target);
                     if (confirmAction.type === "deleteUser")
                       handleDeleteUser(confirmAction.target);
-                    if (confirmAction.type === "deleteFile")
-                      handleDeleteFile(confirmAction.target);
                   }}
                   className={`flex-1 px-4 py-2.5 text-sm font-bold text-white rounded-xl transition-colors shadow-sm ${confirmAction.type === "promote"
                     ? "bg-blue-600 hover:bg-blue-700"

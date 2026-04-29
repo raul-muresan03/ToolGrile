@@ -110,6 +110,59 @@ async def health():
     return {"status": "ok"}
 
 
+@app.get("/api/stats")
+async def platform_stats(db: Session = Depends(get_db)):
+    from sqlalchemy import func as sql_func
+    from datetime import datetime, timedelta
+
+    total_users = db.query(sql_func.count(User.id)).scalar() or 0
+    total_simulations = db.query(sql_func.count(Simulation.id)).scalar() or 0
+    total_grids_solved = db.query(sql_func.sum(Simulation.correct)).scalar() or 0
+    total_grids_generated = db.query(sql_func.sum(Simulation.total_grids)).scalar() or 0
+
+    avg_score = db.query(sql_func.avg(Simulation.score)).scalar()
+    avg_score = round(avg_score, 1) if avg_score else 0
+    avg_elapsed = db.query(sql_func.avg(Simulation.elapsed_seconds)).scalar()
+    avg_elapsed_min = round(avg_elapsed / 60, 1) if avg_elapsed else 0
+
+    today = datetime.now().date()
+    days = [(today - timedelta(days=i)) for i in range(6, -1, -1)]
+
+    recent_sims = db.query(Simulation).filter(
+        Simulation.created_at >= (today - timedelta(days=6))
+    ).all()
+
+    from collections import defaultdict
+    sims_by_date = defaultdict(list)
+    for sim in recent_sims:
+        sims_by_date[sim.created_at.date()].append(sim)
+
+    day_names = ["Lun", "Mar", "Mie", "Joi", "Vin", "Sâm", "Dum"]
+    activity_chart = []
+
+    for d in days:
+        daily_sims = sims_by_date.get(d, [])
+        activity_chart.append({
+            "zi": day_names[d.weekday()],
+            "simulari": len(daily_sims),
+            "studenti": len(set(s.user_id for s in daily_sims))
+        })
+
+    total_elapsed_seconds = db.query(sql_func.sum(Simulation.elapsed_seconds)).scalar() or 0
+    total_study_hours = round(total_elapsed_seconds / 3600, 1)
+
+    return {
+        "total_users": total_users,
+        "total_simulations": total_simulations,
+        "total_grids_solved": total_grids_solved,
+        "total_grids_generated": total_grids_generated,
+        "total_study_hours": total_study_hours,
+        "avg_score": avg_score,
+        "avg_elapsed_min": avg_elapsed_min,
+        "activity_chart": activity_chart
+    }
+
+
 @app.get("/api/chapters")
 async def list_chapters():
     result = {}
