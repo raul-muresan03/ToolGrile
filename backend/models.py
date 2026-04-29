@@ -8,6 +8,7 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, nullable=False, index=True)
+    password = Column(String, nullable=True)
     role = Column(String, default="student")
     created_at = Column(DateTime, server_default=func.now())
 
@@ -24,6 +25,7 @@ class Simulation(Base):
     correct = Column(Integer, nullable=False)
     score = Column(Float, nullable=False)
     elapsed_seconds = Column(Integer, default=0)
+    details_json = Column(String, nullable=True)
     created_at = Column(DateTime, server_default=func.now())
 
     user = relationship("User", back_populates="simulations")

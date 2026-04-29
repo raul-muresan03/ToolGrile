@@ -258,9 +258,11 @@ async def grade_simulation(result: SimulationResult, db: Session = Depends(get_d
         raise HTTPException(status_code=404, detail="Session not found or expired.")
 
     correct_answers = {}
+    grid_to_chapter = {}
     for item in session:
         for gid, ans in item["answers"].items():
             correct_answers[str(gid)] = ans
+            grid_to_chapter[str(gid)] = item["chapter"]
 
     total = len(correct_answers)
     correct = 0
@@ -268,11 +270,13 @@ async def grade_simulation(result: SimulationResult, db: Session = Depends(get_d
 
     for sub in result.answers:
         expected = correct_answers.get(str(sub.grid_id))
+        chapter = grid_to_chapter.get(str(sub.grid_id), "unknown")
         is_correct = expected is not None and sub.answer.upper() == expected.upper()
         if is_correct:
             correct += 1
         details.append({
             "grid_id": sub.grid_id,
+            "chapter": chapter,
             "submitted": sub.answer,
             "expected": expected,
             "is_correct": is_correct,
@@ -295,6 +299,7 @@ async def grade_simulation(result: SimulationResult, db: Session = Depends(get_d
             correct=correct,
             score=score,
             elapsed_seconds=result.elapsed or 0,
+            details_json=json.dumps(details),
         )
         db.add(sim)
         db.commit()
@@ -325,6 +330,86 @@ async def list_users(db: Session = Depends(get_db)):
             "media": f"{avg_score}",
         })
     return {"users": result}
+
+
+@app.get("/api/users/{username}/stats")
+async def user_stats(username: str, days: Optional[int] = None, db: Session = Depends(get_db)):
+    from datetime import datetime, timedelta
+    from collections import defaultdict
+
+    user = db.query(User).filter(User.username == username).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.")
+
+    query = db.query(Simulation).filter(Simulation.user_id == user.id)
+    if days:
+        cutoff = datetime.now() - timedelta(days=days)
+        query = query.filter(Simulation.created_at >= cutoff)
+
+    sims = query.order_by(Simulation.created_at.asc()).all()
+
+    if not sims:
+        return {
+            "username": username,
+            "total_simulations": 0,
+            "avg_score": 0,
+            "total_grids": 0,
+            "total_correct": 0,
+            "best_chapter": None,
+            "worst_chapter": None,
+            "trend": [],
+            "chapter_breakdown": [],
+        }
+
+    total_sims = len(sims)
+    avg_score = round(sum(s.score for s in sims) / total_sims, 1)
+    total_grids = sum(s.total_grids for s in sims)
+    total_correct = sum(s.correct for s in sims)
+
+    chapter_stats = defaultdict(lambda: {"correct": 0, "total": 0})
+    for sim in sims:
+        if not sim.details_json:
+            continue
+        details = json.loads(sim.details_json)
+        for d in details:
+            ch = d.get("chapter", "unknown")
+            chapter_stats[ch]["total"] += 1
+            if d.get("is_correct"):
+                chapter_stats[ch]["correct"] += 1
+
+    chapter_breakdown = []
+    for ch, data in chapter_stats.items():
+        accuracy = round((data["correct"] / data["total"]) * 100, 1) if data["total"] > 0 else 0
+        chapter_breakdown.append({
+            "chapter": ch,
+            "correct": data["correct"],
+            "total": data["total"],
+            "accuracy": accuracy,
+        })
+
+    chapter_breakdown.sort(key=lambda x: x["accuracy"], reverse=True)
+    best_chapter = chapter_breakdown[0] if chapter_breakdown else None
+    worst_chapter = chapter_breakdown[-1] if chapter_breakdown else None
+
+    trend = []
+    for i, sim in enumerate(sims, 1):
+        trend.append({
+            "sim": f"#{i}",
+            "score": sim.score,
+            "date": sim.created_at.strftime("%d/%m") if sim.created_at else "",
+        })
+
+    return {
+        "username": username,
+        "total_simulations": total_sims,
+        "avg_score": avg_score,
+        "total_grids": total_grids,
+        "total_correct": total_correct,
+        "best_chapter": best_chapter,
+        "worst_chapter": worst_chapter,
+        "trend": trend,
+        "chapter_breakdown": chapter_breakdown,
+    }
 
 
 @app.get("/api/grid/{chapter}/{filename}")
