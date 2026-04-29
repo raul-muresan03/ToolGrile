@@ -101,6 +101,18 @@ class SimulationResult(BaseModel):
     username: Optional[str] = None
     elapsed: Optional[int] = 0
 
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+@app.post("/api/login")
+async def login(request: LoginRequest, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.username == request.username).first()
+    if not user or user.password != request.password:
+        raise HTTPException(status_code=401, detail="Username sau parolă incorectă.")
+    return {"role": user.role, "username": user.username}
+
+
 
 _active_sessions: Dict[str, list] = {}
 
