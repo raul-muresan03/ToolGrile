@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, TrendingUp, Loader2, BookOpen } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import AIChat from "@/components/AIChat";
 
 const API_URL = "http://localhost:8000";
 
@@ -69,6 +70,8 @@ export default function StudentStatsPage() {
     return () => { isMounted = false; };
   }, [currentUser, profileTimeframe]);
 
+
+
   if (!currentUser) return null;
 
   return (
@@ -89,8 +92,8 @@ export default function StudentStatsPage() {
                 key={opt.label}
                 onClick={() => setProfileTimeframe(opt.value)}
                 className={`px-4 py-2 text-sm font-bold rounded-lg transition-colors ${profileTimeframe === opt.value
-                    ? "bg-[#0066ff] text-white shadow-sm"
-                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  ? "bg-[#0066ff] text-white shadow-sm"
+                  : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                   }`}
               >
                 {opt.label}
@@ -145,7 +148,7 @@ export default function StudentStatsPage() {
                 <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 p-6 rounded-2xl">
                   <div className="flex items-center gap-2 mb-3">
                     <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
-                    <span className="text-xs font-bold text-red-700 dark:text-red-400 uppercase tracking-wider">Cel mai slab capitol</span>
+                    <span className="text-xs font-bold text-red-700 dark:text-red-400 uppercase tracking-wider">Cel mai greu capitol</span>
                   </div>
                   <p className="text-xl font-extrabold text-slate-900 dark:text-white mb-1">
                     {CHAPTER_LABELS[userProfile.worst_chapter.chapter] || userProfile.worst_chapter.chapter}
@@ -214,6 +217,8 @@ export default function StudentStatsPage() {
           </div>
         )}
       </div>
+
+      <AIChat username={currentUser?.username} />
     </div>
   );
 }

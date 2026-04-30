@@ -222,7 +222,7 @@ export default function AdminDashboard() {
                 }
                 pageSize={4}
                 renderActions={(row: UserData) => (
-                  <div className="flex gap-1.5">
+                  <div className="flex justify-end gap-1.5">
                     <button
                       onClick={() => { setSelectedUser(row.name); setProfileTimeframe(null); }}
                       className="bg-[#0066ff] hover:bg-blue-700 transition-colors w-7 h-7 rounded-lg flex items-center justify-center text-white shadow-sm"
