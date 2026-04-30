@@ -28,6 +28,8 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<{username: string, role: string} | null>(null);
+  const [userStats, setUserStats] = useState<any>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const { theme, toggleTheme } = useTheme();
@@ -42,6 +44,25 @@ export default function Navbar() {
     document.addEventListener("mousedown", handleOutsideClick);
     return () => document.removeEventListener("mousedown", handleOutsideClick);
   }, []);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("currentUser");
+    if (storedUser) {
+      try {
+        const parsed = JSON.parse(storedUser);
+        setCurrentUser(parsed);
+      } catch (err) {}
+    }
+  }, [pathname]);
+
+  useEffect(() => {
+    if (currentUser?.username && pathname !== "/admin") {
+      fetch(`http://localhost:8000/api/users/${currentUser.username}/stats?days=all`)
+        .then(res => res.json())
+        .then(data => setUserStats(data))
+        .catch(err => console.error(err));
+    }
+  }, [currentUser, pathname]);
 
   const isLoggedIn = pathname === "/student" || pathname === "/admin";
 
@@ -77,7 +98,7 @@ export default function Navbar() {
                   }}
                 >
                   <span className="font-bold text-slate-900 dark:text-slate-100 text-lg select-none">
-                    {pathname === "/admin" ? "Admin" : "User"}
+                    {currentUser ? currentUser.username : "Utilizator"}
                   </span>
                   <div className="w-10 h-10 bg-blue-400 dark:bg-blue-500 rounded-full flex items-center justify-center text-blue-900 dark:text-white shadow-sm">
                     <User className="w-6 h-6" />
@@ -92,7 +113,7 @@ export default function Navbar() {
                             Autentificat ca
                           </p>
                           <p className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                            {pathname === "/admin"
+                            {currentUser?.role === "admin"
                               ? "Administrator"
                               : "Student ToolGrile"}
                           </p>
@@ -109,7 +130,7 @@ export default function Navbar() {
                                 </span>
                               </div>
                               <span className="font-extrabold text-slate-900 dark:text-slate-100 text-[15px]">
-                                15
+                                {userStats?.total_simulations || 0}
                               </span>
                             </div>
 
@@ -123,7 +144,7 @@ export default function Navbar() {
                                 </span>
                               </div>
                               <span className="font-extrabold text-slate-900 dark:text-slate-100 text-[15px]">
-                                450
+                                {userStats?.total_grids || 0}
                               </span>
                             </div>
 
@@ -137,7 +158,7 @@ export default function Navbar() {
                                 </span>
                               </div>
                               <span className="font-extrabold text-purple-600 dark:text-purple-400 text-[15px]">
-                                85%
+                                {userStats?.average_score ? (userStats.average_score * 10).toFixed(0) : "0"}%
                               </span>
                             </div>
                           </div>
