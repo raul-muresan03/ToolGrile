@@ -1,4 +1,5 @@
 import json
+import httpx
 import random
 import re
 import uvicorn
@@ -104,6 +105,10 @@ class SimulationResult(BaseModel):
 class LoginRequest(BaseModel):
     username: str
     password: str
+
+class ChatRequest(BaseModel):
+    username: str
+    message: str
 
 @app.post("/api/login")
 async def login(request: LoginRequest, db: Session = Depends(get_db)):
@@ -501,6 +506,99 @@ async def serve_grid_image(chapter: str, filename: str):
         raise HTTPException(status_code=404, detail="Image not found.")
 
     return FileResponse(str(image_path), media_type="image/png")
+
+
+OLLAMA_URL = "http://localhost:11434/api/chat"
+OLLAMA_MODEL = "llama3.2:1b"
+
+CHAPTER_LABELS_RO = {
+    "algebra": "Algebră",
+    "analiza": "Analiză Matematică",
+    "geometrie": "Geometrie",
+    "trigonometrie": "Trigonometrie",
+    "admitere": "Admitere",
+}
+
+@app.post("/api/ai/chat")
+async def ai_chat(request: ChatRequest, db: Session = Depends(get_db)):
+    from datetime import datetime, timedelta
+    from collections import defaultdict
+
+    user = db.query(User).filter(User.username == request.username).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.")
+
+    sims = db.query(Simulation).filter(Simulation.user_id == user.id).order_by(Simulation.created_at.asc()).all()
+
+    if not sims:
+        stats_context = "Studentul nu a completat nicio simulare încă."
+    else:
+        total_sims = len(sims)
+        avg_score = round(sum(s.score for s in sims) / total_sims, 1)
+        total_grids = sum(s.total_grids for s in sims)
+        total_correct = sum(s.correct for s in sims)
+
+        chapter_stats = defaultdict(lambda: {"correct": 0, "total": 0})
+        for sim in sims:
+            if not sim.details_json:
+                continue
+            details = json.loads(sim.details_json)
+            for d in details:
+                ch = d.get("chapter", "unknown")
+                chapter_stats[ch]["total"] += 1
+                if d.get("is_correct"):
+                    chapter_stats[ch]["correct"] += 1
+
+        chapter_lines = []
+        for ch, data in chapter_stats.items():
+            acc = round((data["correct"] / data["total"]) * 100, 1) if data["total"] > 0 else 0
+            label = CHAPTER_LABELS_RO.get(ch, ch)
+            chapter_lines.append(f"  - {label}: {acc}% acuratețe ({data['correct']}/{data['total']} corecte)")
+
+        last_scores = [s.score for s in sims[-5:]]
+        trend_str = ", ".join([f"{s}/10" for s in last_scores])
+
+        stats_context = (
+            f"Statisticile studentului {request.username}:\n"
+            f"- Total simulări: {total_sims}\n"
+            f"- Media generală: {avg_score}/10\n"
+            f"- Grile rezolvate: {total_grids} (corecte: {total_correct})\n"
+            f"- Acuratețe per capitol:\n" + "\n".join(chapter_lines) + "\n"
+            f"- Ultimele note: {trend_str}\n"
+        )
+
+    system_prompt = (
+        "Ești un asistent educațional pentru platforma ToolGrile, o platformă de pregătire pentru examenul de admitere de matematică la facultatea de Automatică și Calculatoare la Universitatea Tehnica din Cluj-Napoca."
+        "Răspunzi DOAR în limba română. Ești concis, prietenos și motivant."
+        "Poți sugera planuri de studiu, capitole de exersat, și simulări personalizate."
+        "Când sugerezi simulări, specifică numărul de grile și capitolele (algebra, analiza, geometrie, trigonometrie, admitere)."
+        "Nu inventa date. Bazează-te strict pe statisticile de mai jos.\n\n"
+        f"{stats_context}"
+    )
+
+    try:
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            ollama_response = await client.post(
+                OLLAMA_URL,
+                json={
+                    "model": OLLAMA_MODEL,
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": request.message},
+                    ],
+                    "stream": False,
+                    "keep_alive": "1m"
+                },
+            )
+            ollama_response.raise_for_status()
+            data = ollama_response.json()
+            reply = data.get("message", {}).get("content", "Nu am putut genera un răspuns.")
+    except httpx.HTTPError as e:
+        raise HTTPException(status_code=502, detail=f"Eroare la comunicarea cu modelul AI: {str(e)}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Eroare internă AI: {str(e)}")
+
+    return {"reply": reply}
 
 
 if __name__ == "__main__":
