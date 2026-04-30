@@ -453,6 +453,29 @@ async def user_stats(username: str, days: Optional[int] = None, db: Session = De
     }
 
 
+@app.put("/api/users/{username}/role")
+async def promote_user(username: str, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.username == username).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.")
+    user.role = "admin"
+    db.commit()
+    return {"message": f"User {username} promoted to admin."}
+
+
+@app.delete("/api/users/{username}")
+async def delete_user(username: str, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.username == username).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.")
+    sims = db.query(Simulation).filter(Simulation.user_id == user.id).all()
+    for s in sims:
+        db.delete(s)
+    db.delete(user)
+    db.commit()
+    return {"message": f"User {username} and associated data deleted."}
+
+
 @app.get("/api/grid/{chapter}/{filename}")
 async def serve_grid_image(chapter: str, filename: str):
     if chapter not in CHAPTER_DIRS:

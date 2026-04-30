@@ -127,7 +127,6 @@ export default function Navbar() {
                                 : "Student ToolGrile"}
                             </p>
                           </div>
-                          {currentUser?.role !== "admin" && (
                             <div className="px-5 py-4 space-y-4">
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2.5">
@@ -171,8 +170,6 @@ export default function Navbar() {
                                 </span>
                               </div>
                             </div>
-                          )}
-                          {currentUser?.role !== "admin" && (
                             <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50">
                               <Link
                                 href="/student/stats"
@@ -183,7 +180,7 @@ export default function Navbar() {
                                 Statisticile Mele
                               </Link>
                             </div>
-                          )}
+
                           <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50">
                             <button
                               onClick={() => {

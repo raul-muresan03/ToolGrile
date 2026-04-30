@@ -149,15 +149,40 @@ export default function AdminDashboard() {
     fetchProfile();
   }, [selectedUser, profileTimeframe]);
 
-  const handleDeleteUser = (name: string) => {
-    setUsers((prev) => prev.filter((u) => u.name !== name));
-    setConfirmAction(null);
-    setEditingUser(null);
+  const handleDeleteUser = async (name: string) => {
+    try {
+      const res = await fetch(`${API_URL}/api/users/${name}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        alert("Eroare la ștergerea utilizatorului.");
+        return;
+      }
+      setUsers((prev) => prev.filter((u) => u.name !== name));
+      setConfirmAction(null);
+      setEditingUser(null);
+    } catch (err) {
+      console.error(err);
+      alert("Eroare de rețea la ștergerea utilizatorului.");
+    }
   };
 
-  const handlePromoteUser = (name: string) => {
-    alert(`${name} a fost promovat la rol de Administrator!`);
-    setConfirmAction(null);
+  const handlePromoteUser = async (name: string) => {
+    try {
+      const res = await fetch(`${API_URL}/api/users/${name}/role`, {
+        method: "PUT",
+      });
+      if (!res.ok) {
+        alert("Eroare la promovarea utilizatorului.");
+        return;
+      }
+      alert(`${name} a fost promovat la rol de Administrator!`);
+      setConfirmAction(null);
+      setEditingUser(null); // Optional: close editing modal
+    } catch (err) {
+      console.error(err);
+      alert("Eroare de rețea la promovare.");
+    }
   };
 
   const TIMEFRAME_OPTIONS = [

@@ -38,10 +38,6 @@ export default function StudentStatsPage() {
     }
     try {
       const parsed = JSON.parse(storedUser);
-      if (parsed.role === "admin") {
-        router.replace("/");
-        return;
-      }
       setCurrentUser(parsed);
     } catch (err) {
       router.replace("/");
