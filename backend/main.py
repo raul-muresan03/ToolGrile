@@ -163,6 +163,32 @@ async def platform_stats(db: Session = Depends(get_db)):
     total_elapsed_seconds = db.query(sql_func.sum(Simulation.elapsed_seconds)).scalar() or 0
     total_study_hours = round(total_elapsed_seconds / 3600, 1)
 
+    all_sims = db.query(Simulation).all()
+    chapter_stats = defaultdict(lambda: {"correct": 0, "total": 0})
+    for sim in all_sims:
+        if sim.details_json:
+            import json
+            details = json.loads(sim.details_json)
+            for d in details:
+                ch = d.get("chapter", "unknown")
+                chapter_stats[ch]["total"] += 1
+                if d.get("is_correct"):
+                    chapter_stats[ch]["correct"] += 1
+
+    easiest_chapter = None
+    hardest_chapter = None
+    max_correct = -1
+    max_wrong = -1
+
+    for ch, stats in chapter_stats.items():
+        if stats["correct"] > max_correct:
+            max_correct = stats["correct"]
+            easiest_chapter = ch
+        wrong = stats["total"] - stats["correct"]
+        if wrong > max_wrong:
+            max_wrong = wrong
+            hardest_chapter = ch
+
     return {
         "total_users": total_users,
         "total_simulations": total_simulations,
@@ -171,7 +197,11 @@ async def platform_stats(db: Session = Depends(get_db)):
         "total_study_hours": total_study_hours,
         "avg_score": avg_score,
         "avg_elapsed_min": avg_elapsed_min,
-        "activity_chart": activity_chart
+        "activity_chart": activity_chart,
+        "easiest_chapter": easiest_chapter,
+        "easiest_correct_count": max_correct,
+        "hardest_chapter": hardest_chapter,
+        "hardest_wrong_count": max_wrong
     }
 
 

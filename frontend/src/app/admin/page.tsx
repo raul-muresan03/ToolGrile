@@ -55,6 +55,10 @@ export default function AdminDashboard() {
     avg_score: 0,
     avg_elapsed_min: 0,
     activity_chart: [],
+    easiest_chapter: null as string | null,
+    easiest_correct_count: 0,
+    hardest_chapter: null as string | null,
+    hardest_wrong_count: 0,
   });
 
   useEffect(() => {
@@ -218,49 +222,95 @@ export default function AdminDashboard() {
           <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">
             Statistici Platformă
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-6">
             <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 flex items-center gap-4">
-              <div className="w-11 h-11 bg-blue-50 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-xl flex items-center justify-center">
+              <div className="w-11 h-11 bg-blue-50 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-xl flex items-center justify-center shrink-0">
                 <Users className="w-5 h-5" />
               </div>
-              <div>
-                <p className="text-xs text-slate-500 dark:text-slate-400 font-bold">
-                  Utilizatori activi
+              <div className="min-w-0">
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-bold truncate uppercase tracking-wider">
+                  Total utilizatori
                 </p>
-                <p className="text-2xl font-extrabold text-slate-900 dark:text-white">{stats.total_users}</p>
+                <p className="text-2xl font-extrabold text-slate-900 dark:text-white truncate">{stats.total_users}</p>
               </div>
             </div>
             <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 flex items-center gap-4">
-              <div className="w-11 h-11 bg-green-50 dark:bg-green-900/50 text-green-600 dark:text-green-400 rounded-xl flex items-center justify-center">
+              <div className="w-11 h-11 bg-green-50 dark:bg-green-900/50 text-green-600 dark:text-green-400 rounded-xl flex items-center justify-center shrink-0">
                 <FileText className="w-5 h-5" />
               </div>
-              <div>
-                <p className="text-xs text-slate-500 dark:text-slate-400 font-bold">
-                  Simulări generate
+              <div className="min-w-0">
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-bold truncate uppercase tracking-wider">
+                  Total simulări
                 </p>
-                <p className="text-2xl font-extrabold text-slate-900 dark:text-white">{stats.total_simulations}</p>
+                <p className="text-2xl font-extrabold text-slate-900 dark:text-white truncate">{stats.total_simulations}</p>
               </div>
             </div>
             <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 flex items-center gap-4">
-              <div className="w-11 h-11 bg-purple-50 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400 rounded-xl flex items-center justify-center">
+              <div className="w-11 h-11 bg-purple-50 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400 rounded-xl flex items-center justify-center shrink-0">
                 <BookOpen className="w-5 h-5" />
               </div>
-              <div>
-                <p className="text-xs text-slate-500 dark:text-slate-400 font-bold">
-                  Total grile disponibile
+              <div className="min-w-0">
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-bold truncate uppercase tracking-wider">
+                  Total grile
                 </p>
-                <p className="text-2xl font-extrabold text-slate-900 dark:text-white">{totalGrile.toLocaleString()}</p>
+                <p className="text-2xl font-extrabold text-slate-900 dark:text-white truncate">{totalGrile.toLocaleString()}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mb-10">
+            <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 flex items-center gap-4">
+              <div className="w-11 h-11 bg-indigo-50 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 rounded-xl flex items-center justify-center shrink-0">
+                <Clock className="w-5 h-5" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-bold truncate uppercase tracking-wider">
+                  Timp mediu / simulare
+                </p>
+                <p className="text-xl font-extrabold text-slate-900 dark:text-white truncate">
+                  {stats.avg_elapsed_min}<span className="text-sm font-bold text-slate-400 ml-1">min</span>
+                </p>
               </div>
             </div>
             <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 flex items-center gap-4">
-              <div className="w-11 h-11 bg-orange-50 dark:bg-orange-900/50 text-orange-600 dark:text-orange-400 rounded-xl flex items-center justify-center">
+              <div className="w-11 h-11 bg-amber-50 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400 rounded-xl flex items-center justify-center shrink-0">
                 <Clock className="w-5 h-5" />
               </div>
-              <div>
-                <p className="text-xs text-slate-500 dark:text-slate-400 font-bold">
-                  Total Ore Studiu
+              <div className="min-w-0">
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-bold truncate uppercase tracking-wider">
+                  Timp / Grilă
                 </p>
-                <p className="text-2xl font-extrabold text-slate-900 dark:text-white">{stats.total_study_hours}<span className="text-lg font-bold text-slate-400"> h</span></p>
+                <p className="text-xl font-extrabold text-slate-900 dark:text-white truncate">
+                  {stats.total_grids_generated > 0 && stats.total_simulations > 0
+                    ? Math.round((stats.avg_elapsed_min * 60) / (stats.total_grids_generated / stats.total_simulations))
+                    : 0}<span className="text-sm font-bold text-slate-400 ml-1">sec</span>
+                </p>
+              </div>
+            </div>
+            <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 flex items-center gap-4">
+              <div className="w-11 h-11 bg-emerald-50 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-center justify-center shrink-0">
+                <TrendingUp className="w-5 h-5" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-bold truncate uppercase tracking-wider">
+                  Cel mai ușor
+                </p>
+                <p className="text-lg font-extrabold text-slate-900 dark:text-white capitalize truncate" title={stats.easiest_chapter || "-"}>
+                  {stats.easiest_chapter || "-"}
+                </p>
+              </div>
+            </div>
+            <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 flex items-center gap-4">
+              <div className="w-11 h-11 bg-rose-50 dark:bg-rose-900/50 text-rose-600 dark:text-rose-400 rounded-xl flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-5 h-5" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-bold truncate uppercase tracking-wider">
+                  Cel mai greu
+                </p>
+                <p className="text-lg font-extrabold text-slate-900 dark:text-white capitalize truncate" title={stats.hardest_chapter || "-"}>
+                  {stats.hardest_chapter || "-"}
+                </p>
               </div>
             </div>
           </div>
@@ -379,36 +429,6 @@ export default function AdminDashboard() {
                   </div>
                 )}
               </div>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-8">
-            <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 bg-blue-50 dark:bg-blue-900/50 rounded-lg flex items-center justify-center">
-                  <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                </div>
-                <span className="text-sm font-bold text-slate-700 dark:text-slate-300">
-                  Timp mediu / grilă
-                </span>
-              </div>
-              <p className="text-3xl font-extrabold text-slate-900 dark:text-white">
-                {stats.total_grids_generated > 0 && stats.total_simulations > 0
-                  ? Math.round((stats.avg_elapsed_min * 60) / (stats.total_grids_generated / stats.total_simulations))
-                  : 0} <span className="text-lg font-bold text-slate-400">sec</span>
-              </p>
-            </div>
-            <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 bg-purple-50 dark:bg-purple-900/50 rounded-lg flex items-center justify-center">
-                  <Clock className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                </div>
-                <span className="text-sm font-bold text-slate-700 dark:text-slate-300">
-                  Timp mediu / simulare
-                </span>
-              </div>
-              <p className="text-3xl font-extrabold text-slate-900 dark:text-white">
-                {stats.avg_elapsed_min} <span className="text-lg font-bold text-slate-400">min</span>
-              </p>
             </div>
           </div>
         </div>
