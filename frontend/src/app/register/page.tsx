@@ -6,7 +6,7 @@ import Link from "next/link";
 
 const API_URL = "http://localhost:8000";
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -15,7 +15,7 @@ export default function LoginPage() {
   );
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = async () => {
+  const handleRegister = async () => {
     const newErrors: { username?: string; password?: string; form?: string } = {};
 
     if (!username.trim()) {
@@ -31,7 +31,7 @@ export default function LoginPage() {
 
     setIsLoading(true);
     try {
-      const response = await fetch(`${API_URL}/api/login`, {
+      const response = await fetch(`${API_URL}/api/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
@@ -39,7 +39,7 @@ export default function LoginPage() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        setErrors({ form: errorData.detail || "Username sau parolă incorectă." });
+        setErrors({ form: errorData.detail || "Eroare la crearea contului." });
         setIsLoading(false);
         return;
       }
@@ -65,11 +65,11 @@ export default function LoginPage() {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white mb-2 tracking-tight">ToolGrile</h1>
           <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-            Autentifică-te pentru a continua
+            Creează un cont pentru a continua
           </p>
         </div>
 
-        <form className="space-y-5" onSubmit={(e) => { e.preventDefault(); handleLogin(); }}>
+        <form className="space-y-5" onSubmit={(e) => { e.preventDefault(); handleRegister(); }}>
           {errors.form && (
             <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm font-bold p-3 rounded-xl border border-red-100 dark:border-red-800/50 text-center">
               {errors.form}
@@ -132,15 +132,15 @@ export default function LoginPage() {
               disabled={isLoading}
               className="w-full flex items-center justify-center bg-[#0066ff] text-white font-bold text-[14px] rounded-xl py-3 px-4 hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              {isLoading ? "Se autentifică..." : "Autentificare"}
+              {isLoading ? "Se creează contul..." : "Înregistrare"}
             </button>
           </div>
 
           <div className="text-center mt-6">
             <p className="text-[13px] text-slate-500 dark:text-slate-400 font-medium">
-              Nu ai cont?{" "}
-              <Link href="/register" className="text-[#0066ff] dark:text-blue-400 font-bold hover:underline">
-                Creează unul
+              Ai deja cont?{" "}
+              <Link href="/login" className="text-[#0066ff] dark:text-blue-400 font-bold hover:underline">
+                Autentifică-te
               </Link>
             </p>
           </div>

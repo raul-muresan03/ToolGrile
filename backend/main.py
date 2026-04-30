@@ -113,6 +113,20 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
     return {"role": user.role, "username": user.username}
 
 
+@app.post("/api/register")
+async def register(request: LoginRequest, db: Session = Depends(get_db)):
+    if not request.username or not request.password:
+        raise HTTPException(status_code=400, detail="Username și parola sunt obligatorii.")
+    existing_user = db.query(User).filter(User.username == request.username).first()
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Acest username există deja.")
+    new_user = User(username=request.username, password=request.password, role="student")
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return {"message": "Cont creat cu succes!", "role": new_user.role, "username": new_user.username}
+
+
 
 _active_sessions: Dict[str, list] = {}
 
