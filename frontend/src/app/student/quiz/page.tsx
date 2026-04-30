@@ -111,8 +111,8 @@ export default function QuizPlayerPage() {
     setIsSubmitting(true);
     setError(null);
 
-    const storedUser = localStorage.getItem("toolgrile_user");
-    const username = storedUser ? JSON.parse(storedUser).name || "anonim" : "anonim";
+    const storedUser = localStorage.getItem("currentUser");
+    const username = storedUser ? JSON.parse(storedUser).username || "anonim" : "anonim";
 
     const payload = {
       session_id: session.session_id,

@@ -57,7 +57,7 @@ export default function Navbar() {
 
   useEffect(() => {
     if (currentUser?.username && pathname !== "/admin") {
-      fetch(`http://localhost:8000/api/users/${currentUser.username}/stats?days=all`)
+      fetch(`http://localhost:8000/api/users/${currentUser.username}/stats`)
         .then(res => res.json())
         .then(data => setUserStats(data))
         .catch(err => console.error(err));
