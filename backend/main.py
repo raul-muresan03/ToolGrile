@@ -1,5 +1,6 @@
 import json
 import httpx
+import os
 import random
 import re
 import uvicorn
@@ -19,7 +20,7 @@ PROCESSED_DIR = ROOT_DIR / "data" / "processed"
 ANSWERS_PATH = PROCESSED_DIR / "final_answers.json"
 
 def get_chapter_dirs():
-    """Scanează dinamic folderul data/processed pentru a identifica capitolele disponibile."""
+    
     chapters = {}
     if not PROCESSED_DIR.exists():
         return chapters
@@ -38,24 +39,21 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=os.getenv("CORS_ORIGINS", "http://localhost:3000").split(","),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-
 @app.on_event("startup")
 def on_startup():
     Base.metadata.create_all(bind=engine)
-
 
 def _load_answers() -> dict:
     if not ANSWERS_PATH.exists():
         return {}
     with open(ANSWERS_PATH, "r", encoding="utf-8") as f:
         return json.load(f)
-
 
 def _scan_inventory():
     answers = _load_answers()
@@ -83,7 +81,6 @@ def _scan_inventory():
             })
 
     return inventory
-
 
 class ChapterWeight(BaseModel):
     weight: float
@@ -117,7 +114,6 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=401, detail="Username sau parolă incorectă.")
     return {"role": user.role, "username": user.username}
 
-
 @app.post("/api/register")
 async def register(request: LoginRequest, db: Session = Depends(get_db)):
     if not request.username or not request.password:
@@ -131,15 +127,11 @@ async def register(request: LoginRequest, db: Session = Depends(get_db)):
     db.refresh(new_user)
     return {"message": "Cont creat cu succes!", "role": new_user.role, "username": new_user.username}
 
-
-
 _active_sessions: Dict[str, list] = {}
-
 
 @app.get("/api/health")
 async def health():
     return {"status": "ok"}
-
 
 @app.get("/api/stats")
 async def platform_stats(db: Session = Depends(get_db)):
@@ -223,7 +215,6 @@ async def platform_stats(db: Session = Depends(get_db)):
         "hardest_wrong_count": max_wrong
     }
 
-
 @app.get("/api/chapters")
 async def list_chapters():
     result = {}
@@ -239,7 +230,6 @@ async def list_chapters():
                 total_grids += len(ids)
         result[chapter_name] = {"total_grids": total_grids}
     return {"chapters": result}
-
 
 @app.post("/api/simulation/generate")
 async def generate_simulation(config: SimulationConfig):
@@ -311,7 +301,6 @@ async def generate_simulation(config: SimulationConfig):
         "grids": grids,
     }
 
-
 @app.post("/api/simulation/grade")
 async def grade_simulation(result: SimulationResult, db: Session = Depends(get_db)):
     session = _active_sessions.get(result.session_id)
@@ -373,7 +362,6 @@ async def grade_simulation(result: SimulationResult, db: Session = Depends(get_d
         "details": details,
     }
 
-
 @app.get("/api/users")
 async def list_users(db: Session = Depends(get_db)):
     users = db.query(User).all()
@@ -390,7 +378,6 @@ async def list_users(db: Session = Depends(get_db)):
             "media": f"{avg_score}",
         })
     return {"users": result}
-
 
 @app.get("/api/users/{username}/stats")
 async def user_stats(username: str, days: Optional[int] = None, db: Session = Depends(get_db)):
@@ -471,7 +458,6 @@ async def user_stats(username: str, days: Optional[int] = None, db: Session = De
         "chapter_breakdown": chapter_breakdown,
     }
 
-
 @app.put("/api/users/{username}/role")
 async def promote_user(username: str, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.username == username).first()
@@ -480,7 +466,6 @@ async def promote_user(username: str, db: Session = Depends(get_db)):
     user.role = "admin"
     db.commit()
     return {"message": f"User {username} promoted to admin."}
-
 
 @app.delete("/api/users/{username}")
 async def delete_user(username: str, db: Session = Depends(get_db)):
@@ -494,7 +479,6 @@ async def delete_user(username: str, db: Session = Depends(get_db)):
     db.commit()
     return {"message": f"User {username} and associated data deleted."}
 
-
 @app.get("/api/grid/{chapter}/{filename}")
 async def serve_grid_image(chapter: str, filename: str):
     if chapter not in CHAPTER_DIRS:
@@ -507,9 +491,8 @@ async def serve_grid_image(chapter: str, filename: str):
 
     return FileResponse(str(image_path), media_type="image/png")
 
-
-OLLAMA_URL = "http://localhost:11434/api/chat"
-OLLAMA_MODEL = "llama3.2:1b"
+OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434/api/chat")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.2:1b")
 
 CHAPTER_LABELS_RO = {
     "algebra": "Algebră",
@@ -599,7 +582,6 @@ async def ai_chat(request: ChatRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=f"Eroare internă AI: {str(e)}")
 
     return {"reply": reply}
-
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

@@ -19,6 +19,7 @@ import {
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { useTheme } from "@/components/ThemeProvider";
+import { API_URL } from "@/lib/constants";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -57,7 +58,7 @@ export default function Navbar() {
 
   useEffect(() => {
     if (currentUser?.username && pathname !== "/admin") {
-      fetch(`http://localhost:8000/api/users/${currentUser.username}/stats`)
+      fetch(`${API_URL}/api/users/${currentUser.username}/stats`)
         .then(res => res.json())
         .then(data => setUserStats(data))
         .catch(err => console.error(err));

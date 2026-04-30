@@ -2,7 +2,6 @@ from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, fun
 from sqlalchemy.orm import relationship
 from database import Base
 
-
 class User(Base):
     __tablename__ = "users"
 
@@ -13,7 +12,6 @@ class User(Base):
     created_at = Column(DateTime, server_default=func.now())
 
     simulations = relationship("Simulation", back_populates="user")
-
 
 class Simulation(Base):
     __tablename__ = "simulations"

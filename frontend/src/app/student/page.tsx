@@ -4,8 +4,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Check, Calculator, Loader2 } from "lucide-react";
 import RangeSlider from "@/components/RangeSlider";
-
-const API_URL = "http://localhost:8000";
+import { API_URL } from "@/lib/constants";
 
 interface CustomCheckboxProps {
   label: React.ReactNode;

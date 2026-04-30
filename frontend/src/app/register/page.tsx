@@ -3,8 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-
-const API_URL = "http://localhost:8000";
+import { API_URL } from "@/lib/constants";
 
 export default function RegisterPage() {
   const router = useRouter();

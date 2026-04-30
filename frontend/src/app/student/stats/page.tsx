@@ -5,24 +5,7 @@ import { useRouter } from "next/navigation";
 import { AlertTriangle, TrendingUp, Loader2, BookOpen } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import AIChat from "@/components/AIChat";
-
-const API_URL = "http://localhost:8000";
-
-const CHAPTER_LABELS: Record<string, string> = {
-  algebra: "Algebră",
-  analiza: "Analiză Mat.",
-  geometrie: "Geometrie",
-  trigonometrie: "Trigonometrie",
-  admitere: "Admitere",
-};
-
-const TIMEFRAME_OPTIONS = [
-  { label: "7 zile", value: 7 },
-  { label: "30 zile", value: 30 },
-  { label: "3 luni", value: 90 },
-  { label: "6 luni", value: 180 },
-  { label: "Tot", value: null },
-];
+import { API_URL, CHAPTER_LABELS, TIMEFRAME_OPTIONS } from "@/lib/constants";
 
 export default function StudentStatsPage() {
   const router = useRouter();
@@ -69,8 +52,6 @@ export default function StudentStatsPage() {
     fetchProfile();
     return () => { isMounted = false; };
   }, [currentUser, profileTimeframe]);
-
-
 
   if (!currentUser) return null;
 

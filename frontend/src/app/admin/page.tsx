@@ -5,16 +5,7 @@ import { useRouter } from "next/navigation";
 import { Pencil, X, AlertTriangle, FileText, CheckSquare, BarChart3, ShieldCheck, Trash2, Users, Clock, TrendingUp, BookOpen, Loader2, Eye } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, } from "recharts";
 import DataTable, { Column } from "@/components/DataTable";
-
-const API_URL = "http://localhost:8000";
-
-const CHAPTER_LABELS: Record<string, string> = {
-  algebra: "Algebră",
-  analiza: "Analiză Mat.",
-  geometrie: "Geometrie",
-  trigonometrie: "Trigonometrie",
-  admitere: "Admitere",
-};
+import { API_URL, CHAPTER_LABELS, TIMEFRAME_OPTIONS } from "@/lib/constants";
 
 interface UserData {
   name: string;
@@ -178,20 +169,12 @@ export default function AdminDashboard() {
       }
       alert(`${name} a fost promovat la rol de Administrator!`);
       setConfirmAction(null);
-      setEditingUser(null); // Optional: close editing modal
+      setEditingUser(null);
     } catch (err) {
       console.error(err);
       alert("Eroare de rețea la promovare.");
     }
   };
-
-  const TIMEFRAME_OPTIONS = [
-    { label: "7 zile", value: 7 },
-    { label: "30 zile", value: 30 },
-    { label: "3 luni", value: 90 },
-    { label: "6 luni", value: 180 },
-    { label: "Tot", value: null },
-  ];
 
   return (
     <div className="flex-1 w-full bg-slate-50 dark:bg-slate-950 min-h-full transition-colors duration-300">

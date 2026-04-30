@@ -3,16 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight, Loader2, AlertTriangle, Clock } from "lucide-react";
-
-const API_URL = "http://localhost:8000";
-
-const CHAPTER_LABELS: Record<string, string> = {
-  algebra: "Algebră",
-  analiza: "Analiză Matematică",
-  geometrie: "Geometrie",
-  trigonometrie: "Trigonometrie",
-  admitere: "Subiecte Admitere",
-};
+import { API_URL, CHAPTER_LABELS } from "@/lib/constants";
 
 const CHAPTER_COLORS: Record<string, string> = {
   algebra: "bg-blue-500",

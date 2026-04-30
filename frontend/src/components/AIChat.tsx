@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Sparkles, Send, Bot, User as UserIcon } from "lucide-react";
-
-const API_URL = "http://localhost:8000";
+import { API_URL } from "@/lib/constants";
 
 interface AIChatProps {
   username?: string;
