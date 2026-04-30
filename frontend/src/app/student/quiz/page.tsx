@@ -24,6 +24,7 @@ interface SessionData {
   session_id: string;
   total_grids: number;
   grids: GridItem[];
+  timer?: number;
 }
 
 const ANSWER_OPTIONS = ["A", "B", "C", "D", "E"];
@@ -61,16 +62,44 @@ export default function QuizPlayerPage() {
   }, []);
 
   useEffect(() => {
+    if (session?.timer && !isSubmitting) {
+      const totalSeconds = session.timer * 60;
+      if (elapsed >= totalSeconds) {
+        handleSubmit(true);
+      }
+    }
+  }, [elapsed, session, isSubmitting]);
+
+  useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isSubmitting) return;
       e.preventDefault();
+      e.returnValue = "";
+    };
+
+    const handleInternalNavigation = (e: MouseEvent) => {
+      if (isSubmitting) return;
+      
+      const target = e.target as HTMLElement;
+      const link = target.closest("a");
+      
+      if (link && link.href && !link.href.includes("/student/quiz")) {
+        const confirmExit = window.confirm("Ești sigur că vrei să părăsești simularea? Progresul nesalvat va fi pierdut.");
+        if (!confirmExit) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }
     };
 
     window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("click", handleInternalNavigation, true);
 
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("click", handleInternalNavigation, true);
     };
-  }, []);
+  }, [isSubmitting]);
 
   if (!session) {
     return (
@@ -98,8 +127,8 @@ export default function QuizPlayerPage() {
     setAnswers((prev) => ({ ...prev, [gridId]: answer }));
   };
 
-  const handleSubmit = async () => {
-    if (answeredCount < totalQuestions) {
+  const handleSubmit = async (force: boolean = false) => {
+    if (!force && answeredCount < totalQuestions) {
       const confirmEnd = window.confirm(
         `Mai ai ${totalQuestions - answeredCount} întrebări fără răspuns. Ești sigur că vrei să finalizezi simularea?`
       );
@@ -165,12 +194,26 @@ export default function QuizPlayerPage() {
               {answeredCount} din {totalQuestions} răspunsuri completate
             </p>
           </div>
-          <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-            <Clock className="w-4 h-4 text-slate-400" />
-            <span className="text-sm font-bold text-slate-700 dark:text-slate-300 tabular-nums">
-              {formatTime(elapsed)}
-            </span>
-          </div>
+          {session.timer ? (
+            <div className={`flex items-center gap-2 px-4 py-2 rounded-xl border shadow-sm transition-colors ${
+              (session.timer * 60 - elapsed) < 300 && (session.timer * 60 - elapsed) > 0
+                ? "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800"
+                : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700"
+            }`}>
+              <Clock className={`w-4 h-4 ${
+                (session.timer * 60 - elapsed) < 300 && (session.timer * 60 - elapsed) > 0
+                  ? "text-red-500 dark:text-red-400 animate-pulse"
+                  : "text-slate-400"
+              }`} />
+              <span className={`text-sm font-bold tabular-nums ${
+                (session.timer * 60 - elapsed) < 300 && (session.timer * 60 - elapsed) > 0
+                  ? "text-red-600 dark:text-red-400"
+                  : "text-slate-700 dark:text-slate-300"
+              }`}>
+                {formatTime(Math.max(0, session.timer * 60 - elapsed))}
+              </span>
+            </div>
+          ) : null}
         </div>
 
         <div className="w-full bg-slate-300 dark:bg-slate-800 rounded-full h-2 mb-8">
@@ -257,7 +300,7 @@ export default function QuizPlayerPage() {
             </button>
           ) : (
             <button
-              onClick={handleSubmit}
+              onClick={() => handleSubmit(false)}
               disabled={isSubmitting}
               className="flex items-center gap-2 px-8 py-2.5 rounded-xl text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-400 disabled:cursor-not-allowed transition-colors shadow-sm"
             >

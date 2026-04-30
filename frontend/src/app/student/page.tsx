@@ -31,6 +31,8 @@ export default function StudentDashboard() {
   const [isPageLoading, setIsPageLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [chapterCounts, setChapterCounts] = useState<Record<string, number>>({});
+  const [timerOption, setTimerOption] = useState<number>(0);
+  const [customTimer, setCustomTimer] = useState<string>("60");
 
   useEffect(() => {
     const storedUser = localStorage.getItem("currentUser");
@@ -148,6 +150,12 @@ export default function StudentDashboard() {
       }
 
       const data = await res.json();
+
+      const actualTimer = timerOption === -1 ? parseInt(customTimer) || 0 : timerOption;
+      if (actualTimer > 0) {
+        data.timer = actualTimer;
+      }
+
       localStorage.setItem("toolgrile_session", JSON.stringify(data));
       router.push(`/student/quiz`);
     } catch (err: any) {
@@ -221,6 +229,39 @@ export default function StudentDashboard() {
                   onChange={(val) => setNumQuizzes(val)}
                   unit="grile"
                 />
+              </div>
+
+              <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide mb-4 mt-8 text-center lg:text-left">
+                Timp limită
+              </h3>
+              <div className="flex flex-col gap-3">
+                <select
+                  value={timerOption}
+                  onChange={(e) => setTimerOption(Number(e.target.value))}
+                  className="w-full px-4 py-2.5 border rounded-xl text-slate-900 dark:text-white bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-sm font-bold shadow-sm focus:ring-2 focus:ring-blue-500/50 outline-none transition-all cursor-pointer"
+                >
+                  <option value={0}>Fără limită</option>
+                  <option value={30}>30 minute</option>
+                  <option value={60}>60 minute</option>
+                  <option value={90}>90 minute</option>
+                  <option value={120}>120 minute</option>
+                  <option value={180}>180 minute (Standard Admitere)</option>
+                  <option value={-1}>Personalizat...</option>
+                </select>
+
+                {timerOption === -1 && (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min={1}
+                      value={customTimer}
+                      onChange={(e) => setCustomTimer(e.target.value)}
+                      className="flex-1 px-4 py-2.5 border rounded-xl text-slate-900 dark:text-white bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500/50"
+                      placeholder="Ex: 45"
+                    />
+                    <span className="text-sm font-bold text-slate-500 dark:text-slate-400">minute</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
