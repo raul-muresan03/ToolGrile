@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Pencil, X, AlertTriangle, FileText, CheckSquare, BarChart3, ShieldCheck, Trash2, Users, Clock, TrendingUp, BookOpen, Loader2, Eye } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, } from "recharts";
 import DataTable, { Column } from "@/components/DataTable";
@@ -23,8 +24,25 @@ interface UserData {
 }
 
 export default function AdminDashboard() {
+  const router = useRouter();
   const [users, setUsers] = useState<UserData[]>([]);
   const [usersLoading, setUsersLoading] = useState(true);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("currentUser");
+    if (!storedUser) {
+      router.replace("/");
+      return;
+    }
+    try {
+      const parsed = JSON.parse(storedUser);
+      if (parsed.role !== "admin") {
+        router.replace("/");
+      }
+    } catch (err) {
+      router.replace("/");
+    }
+  }, [router]);
   const [mounted, setMounted] = useState(false);
   const [chapterData, setChapterData] = useState<{ capitol: string; grile: number }[]>([]);
   const [totalGrile, setTotalGrile] = useState(0);

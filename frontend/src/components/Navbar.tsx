@@ -28,7 +28,7 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
-  const [currentUser, setCurrentUser] = useState<{username: string, role: string} | null>(null);
+  const [currentUser, setCurrentUser] = useState<{ username: string, role: string } | null>(null);
   const [userStats, setUserStats] = useState<any>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
@@ -51,7 +51,7 @@ export default function Navbar() {
       try {
         const parsed = JSON.parse(storedUser);
         setCurrentUser(parsed);
-      } catch (err) {}
+      } catch (err) { }
     }
   }, [pathname]);
 
@@ -64,7 +64,7 @@ export default function Navbar() {
     }
   }, [currentUser, pathname]);
 
-  const isLoggedIn = pathname === "/student" || pathname === "/admin";
+  const isLoggedIn = !!currentUser;
 
   return (
     <nav className="bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-800 sticky top-0 z-50 shadow-sm transition-colors duration-300">
@@ -89,127 +89,140 @@ export default function Navbar() {
             </button>
 
             {isLoggedIn ? (
-              <div className="relative" ref={menuRef}>
-                <div
-                  className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
-                  onClick={() => {
-                    setIsUserMenuOpen(!isUserMenuOpen);
-                    setIsDeleteConfirmOpen(false);
-                  }}
-                >
-                  <span className="font-bold text-slate-900 dark:text-slate-100 text-lg select-none">
-                    {currentUser ? currentUser.username : "Utilizator"}
-                  </span>
-                  <div className="w-10 h-10 bg-blue-400 dark:bg-blue-500 rounded-full flex items-center justify-center text-blue-900 dark:text-white shadow-sm">
-                    <User className="w-6 h-6" />
-                  </div>
-                </div>
-                {isUserMenuOpen && (
-                  <div className="absolute right-0 mt-3 w-72 bg-white dark:bg-slate-800 rounded-[1.25rem] shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] dark:shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] border border-slate-100 dark:border-slate-700 overflow-hidden z-50">
-                    {!isDeleteConfirmOpen ? (
-                      <div>
-                        <div className="bg-blue-50/50 dark:bg-blue-950/50 px-5 py-4 border-b border-blue-100/50 dark:border-blue-800/50">
-                          <p className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-0.5">
-                            Autentificat ca
-                          </p>
-                          <p className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                            {currentUser?.role === "admin"
-                              ? "Administrator"
-                              : "Student ToolGrile"}
-                          </p>
-                        </div>
-                        {pathname !== "/admin" && (
-                          <div className="px-5 py-4 space-y-4">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2.5">
-                                <div className="w-7 h-7 bg-blue-50 dark:bg-blue-900/50 rounded-lg flex items-center justify-center">
-                                  <FileText className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                                </div>
-                                <span className="text-[13px] font-bold text-slate-700 dark:text-slate-300">
-                                  Simulări generate
-                                </span>
-                              </div>
-                              <span className="font-extrabold text-slate-900 dark:text-slate-100 text-[15px]">
-                                {userStats?.total_simulations || 0}
-                              </span>
-                            </div>
-
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2.5">
-                                <div className="w-7 h-7 bg-green-50 dark:bg-green-900/50 rounded-lg flex items-center justify-center">
-                                  <CheckSquare className="w-4 h-4 text-green-600 dark:text-green-400" />
-                                </div>
-                                <span className="text-[13px] font-bold text-slate-700 dark:text-slate-300">
-                                  Grile rezolvate
-                                </span>
-                              </div>
-                              <span className="font-extrabold text-slate-900 dark:text-slate-100 text-[15px]">
-                                {userStats?.total_grids || 0}
-                              </span>
-                            </div>
-
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2.5">
-                                <div className="w-7 h-7 bg-purple-50 dark:bg-purple-900/50 rounded-lg flex items-center justify-center">
-                                  <BarChart3 className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                                </div>
-                                <span className="text-[13px] font-bold text-slate-700 dark:text-slate-300">
-                                  Media simulărilor
-                                </span>
-                              </div>
-                              <span className="font-extrabold text-purple-600 dark:text-purple-400 text-[15px]">
-                                {userStats?.average_score ? (userStats.average_score * 10).toFixed(0) : "0"}%
-                              </span>
-                            </div>
-                          </div>
-                        )}
-                        <div className="px-5 py-4 border-t border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50">
-                          <button
-                            onClick={() => setIsDeleteConfirmOpen(true)}
-                            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/50 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-xl transition-colors"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                            Șterge Contul
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="px-5 py-6 text-center">
-                        <div className="w-14 h-14 bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mx-auto mb-4">
-                          <AlertTriangle
-                            className="w-7 h-7"
-                            strokeWidth={2.5}
-                          />
-                        </div>
-                        <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">
-                          Ești sigur?
-                        </h3>
-                        <p className="text-[13px] leading-relaxed text-slate-500 dark:text-slate-400 mb-6 px-2 font-medium">
-                          Acțiunea este ireversibilă. Toate datele tale și
-                          istoricul simulărilor vor fi șterse permanent!
-                        </p>
-                        <div className="flex gap-3">
-                          <button
-                            onClick={() => setIsDeleteConfirmOpen(false)}
-                            className="flex-1 px-4 py-2.5 text-sm font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-xl transition-colors"
-                          >
-                            Anulează
-                          </button>
-                          <button
-                            onClick={() => {
-                              alert("Cerere de ștergere trimisă!");
-                              setIsUserMenuOpen(false);
-                              setIsDeleteConfirmOpen(false);
-                            }}
-                            className="flex-1 px-4 py-2.5 text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl transition-colors shadow-sm"
-                          >
-                            Confirmă
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+              <div className="flex items-center gap-3">
+                {pathname === "/" && (
+                  <Link
+                    href={currentUser?.role === "admin" ? "/admin" : "/student"}
+                    className="inline-flex items-center gap-2 px-6 py-2 border border-transparent text-sm font-semibold rounded-full text-white bg-[#0066ff] hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors shadow-sm cursor-pointer"
+                  >
+                    {currentUser?.role === "admin" ? "Dashboard Admin" : "Generează Simularea"}
+                  </Link>
                 )}
+                <div className="relative" ref={menuRef}>
+                  <div
+                    className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={() => {
+                      setIsUserMenuOpen(!isUserMenuOpen);
+                      setIsDeleteConfirmOpen(false);
+                    }}
+                  >
+                    <span className="font-bold text-slate-900 dark:text-slate-100 text-lg select-none">
+                      {currentUser ? currentUser.username : "Utilizator"}
+                    </span>
+                    <div className="w-10 h-10 bg-blue-400 dark:bg-blue-500 rounded-full flex items-center justify-center text-blue-900 dark:text-white shadow-sm">
+                      <User className="w-6 h-6" />
+                    </div>
+                  </div>
+                  {isUserMenuOpen && (
+                    <div className="absolute right-0 mt-3 w-72 bg-white dark:bg-slate-800 rounded-[1.25rem] shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] dark:shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] border border-slate-100 dark:border-slate-700 overflow-hidden z-50">
+                      {!isDeleteConfirmOpen ? (
+                        <div>
+                          <div className="bg-blue-50/50 dark:bg-blue-950/50 px-5 py-4 border-b border-blue-100/50 dark:border-blue-800/50">
+                            <p className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-0.5">
+                              Autentificat ca
+                            </p>
+                            <p className="text-lg font-bold text-slate-900 dark:text-slate-100">
+                              {currentUser?.role === "admin"
+                                ? "Administrator"
+                                : "Student ToolGrile"}
+                            </p>
+                          </div>
+                          {currentUser?.role !== "admin" && (
+                            <div className="px-5 py-4 space-y-4">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2.5">
+                                  <div className="w-7 h-7 bg-blue-50 dark:bg-blue-900/50 rounded-lg flex items-center justify-center">
+                                    <FileText className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                                  </div>
+                                  <span className="text-[13px] font-bold text-slate-700 dark:text-slate-300">
+                                    Simulări generate
+                                  </span>
+                                </div>
+                                <span className="font-extrabold text-slate-900 dark:text-slate-100 text-[15px]">
+                                  {userStats?.total_simulations || 0}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2.5">
+                                  <div className="w-7 h-7 bg-green-50 dark:bg-green-900/50 rounded-lg flex items-center justify-center">
+                                    <CheckSquare className="w-4 h-4 text-green-600 dark:text-green-400" />
+                                  </div>
+                                  <span className="text-[13px] font-bold text-slate-700 dark:text-slate-300">
+                                    Grile rezolvate
+                                  </span>
+                                </div>
+                                <span className="font-extrabold text-slate-900 dark:text-slate-100 text-[15px]">
+                                  {userStats?.total_grids || 0}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2.5">
+                                  <div className="w-7 h-7 bg-purple-50 dark:bg-purple-900/50 rounded-lg flex items-center justify-center">
+                                    <BarChart3 className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                                  </div>
+                                  <span className="text-[13px] font-bold text-slate-700 dark:text-slate-300">
+                                    Media simulărilor
+                                  </span>
+                                </div>
+                                <span className="font-extrabold text-purple-600 dark:text-purple-400 text-[15px]">
+                                  {userStats?.average_score ? (userStats.average_score * 10).toFixed(0) : "0"}%
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                          <div className="px-5 py-4 border-t border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50">
+                            <button
+                              onClick={() => {
+                                localStorage.removeItem("currentUser");
+                                window.location.href = "/";
+                              }}
+                              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/50 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-xl transition-colors"
+                            >
+                              <LogIn className="w-4 h-4 rotate-180" />
+                              Deconectare
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="px-5 py-6 text-center">
+                          <div className="w-14 h-14 bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <AlertTriangle
+                              className="w-7 h-7"
+                              strokeWidth={2.5}
+                            />
+                          </div>
+                          <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">
+                            Ești sigur?
+                          </h3>
+                          <p className="text-[13px] leading-relaxed text-slate-500 dark:text-slate-400 mb-6 px-2 font-medium">
+                            Acțiunea este ireversibilă. Toate datele tale și
+                            istoricul simulărilor vor fi șterse permanent!
+                          </p>
+                          <div className="flex gap-3">
+                            <button
+                              onClick={() => setIsDeleteConfirmOpen(false)}
+                              className="flex-1 px-4 py-2.5 text-sm font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-xl transition-colors"
+                            >
+                              Anulează
+                            </button>
+                            <button
+                              onClick={() => {
+                                alert("Cerere de ștergere trimisă!");
+                                setIsUserMenuOpen(false);
+                                setIsDeleteConfirmOpen(false);
+                              }}
+                              className="flex-1 px-4 py-2.5 text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl transition-colors shadow-sm"
+                            >
+                              Confirmă
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             ) : (
               <Link

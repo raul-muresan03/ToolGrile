@@ -108,6 +108,22 @@ export default function StudentDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [chapterCounts, setChapterCounts] = useState<Record<string, number>>({});
 
+  useEffect(() => {
+    const storedUser = localStorage.getItem("currentUser");
+    if (!storedUser) {
+      router.replace("/");
+      return;
+    }
+    try {
+      const parsed = JSON.parse(storedUser);
+      if (parsed.role === "admin") {
+        router.replace("/");
+      }
+    } catch (err) {
+      router.replace("/");
+    }
+  }, [router]);
+
   const [selectedChapters, setSelectedChapters] = useState<Record<string, boolean>>(
     MATH_CHAPTERS.reduce((acc, ch) => ({ ...acc, [ch.key]: false }), {}),
   );
