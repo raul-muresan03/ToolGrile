@@ -99,6 +99,13 @@ export default function QuizPlayerPage() {
   };
 
   const handleSubmit = async () => {
+    if (answeredCount < totalQuestions) {
+      const confirmEnd = window.confirm(
+        `Mai ai ${totalQuestions - answeredCount} întrebări fără răspuns. Ești sigur că vrei să finalizezi simularea?`
+      );
+      if (!confirmEnd) return;
+    }
+
     setIsSubmitting(true);
     setError(null);
 

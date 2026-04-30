@@ -9,7 +9,7 @@ const ThemeContext = createContext<{
   toggleTheme: () => void;
 }>({
   theme: "light",
-  toggleTheme: () => {},
+  toggleTheme: () => { },
 });
 
 export function useTheme() {

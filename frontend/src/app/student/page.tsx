@@ -2,86 +2,11 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Calculator, Loader2 } from "lucide-react";
+import { Calculator, Loader2 } from "lucide-react";
 import RangeSlider from "@/components/RangeSlider";
+import CustomCheckbox from "@/components/CustomCheckbox";
+import WeightSelect from "@/components/WeightSelect";
 import { API_URL } from "@/lib/constants";
-
-interface CustomCheckboxProps {
-  label: React.ReactNode;
-  checked: boolean;
-  onChange: (val: boolean) => void;
-  renderWeights?: React.ReactNode;
-}
-
-function CustomCheckbox({
-  label,
-  checked,
-  onChange,
-  renderWeights,
-}: CustomCheckboxProps) {
-  return (
-    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between py-1 gap-2">
-      <div
-        className="flex items-start gap-3 cursor-pointer group"
-        onClick={() => onChange(!checked)}
-      >
-        <div
-          className={`shrink-0 mt-0.5 w-6 h-6 rounded-md flex items-center justify-center transition-colors border-2 ${checked
-            ? "bg-[#0066ff] border-[#0066ff]"
-            : "bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600"
-            }`}
-        >
-          {checked && <Check className="w-4 h-4 text-white" strokeWidth={3} />}
-        </div>
-        <span className="font-bold text-slate-900 dark:text-slate-100 text-[16px] leading-tight pt-0.5 max-w-[260px]">
-          {label}
-        </span>
-      </div>
-      {renderWeights && (
-        <div className="ml-9 sm:ml-0 flex items-center gap-2">
-          {renderWeights}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function WeightSelect({
-  value,
-  onChange,
-  label,
-}: {
-  value: string;
-  onChange: (val: string) => void;
-  label?: string;
-}) {
-  return (
-    <div className="flex flex-col gap-1 items-center">
-      {label && (
-        <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold leading-none uppercase tracking-wide">
-          {label}
-        </span>
-      )}
-      <div className="relative">
-        <select
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="text-[11px] font-semibold text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-md px-2 py-1 outline-none focus:border-blue-400 focus:bg-white dark:focus:bg-slate-600 appearance-none cursor-pointer pr-6 hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors shadow-sm"
-          style={{
-            backgroundImage: `url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="%2364748b" viewBox="0 0 16 16"><path d="M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06z"/></svg>')`,
-            backgroundRepeat: "no-repeat",
-            backgroundPosition: "right 2px center",
-            backgroundSize: "14px 14px",
-          }}
-        >
-          <option value="0.5">Scăzută (½ șanse)</option>
-          <option value="1.0">Standard (1x)</option>
-          <option value="2.0">Crescută (2x șanse)</option>
-        </select>
-      </div>
-    </div>
-  );
-}
 
 const MATH_CHAPTERS = [
   { key: "algebra", label: "Algebră", color: "blue" },
