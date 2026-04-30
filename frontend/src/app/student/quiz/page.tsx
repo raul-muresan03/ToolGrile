@@ -112,7 +112,13 @@ export default function QuizPlayerPage() {
     setError(null);
 
     const storedUser = localStorage.getItem("currentUser");
-    const username = storedUser ? JSON.parse(storedUser).username || "anonim" : "anonim";
+    const username = storedUser ? JSON.parse(storedUser).username : null;
+
+    if (!username) {
+      setError("Sesiune expirată. Te rugăm să te reautentifici.");
+      setIsSubmitting(false);
+      return;
+    }
 
     const payload = {
       session_id: session.session_id,

@@ -296,25 +296,24 @@ async def grade_simulation(result: SimulationResult, db: Session = Depends(get_d
 
     score = round((correct / total) * 10, 2) if total > 0 else 0
 
-    if result.username:
-        user = db.query(User).filter(User.username == result.username).first()
-        if not user:
-            user = User(username=result.username)
-            db.add(user)
-            db.commit()
-            db.refresh(user)
+    if not result.username:
+        raise HTTPException(status_code=401, detail="Trebuie să fii autentificat pentru a finaliza simularea.")
 
-        sim = Simulation(
-            session_id=result.session_id,
-            user_id=user.id,
-            total_grids=total,
-            correct=correct,
-            score=score,
-            elapsed_seconds=result.elapsed or 0,
-            details_json=json.dumps(details),
-        )
-        db.add(sim)
-        db.commit()
+    user = db.query(User).filter(User.username == result.username).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="Utilizator invalid.")
+
+    sim = Simulation(
+        session_id=result.session_id,
+        user_id=user.id,
+        total_grids=total,
+        correct=correct,
+        score=score,
+        elapsed_seconds=result.elapsed or 0,
+        details_json=json.dumps(details),
+    )
+    db.add(sim)
+    db.commit()
 
     del _active_sessions[result.session_id]
 
