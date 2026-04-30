@@ -172,7 +172,19 @@ export default function Navbar() {
                               </div>
                             </div>
                           )}
-                          <div className="px-5 py-4 border-t border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50">
+                          {currentUser?.role !== "admin" && (
+                            <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50">
+                              <Link
+                                href="/student/stats"
+                                onClick={() => setIsUserMenuOpen(false)}
+                                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-bold text-[#0066ff] dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-xl transition-colors"
+                              >
+                                <BarChart3 className="w-4 h-4" />
+                                Statisticile Mele
+                              </Link>
+                            </div>
+                          )}
+                          <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50">
                             <button
                               onClick={() => {
                                 localStorage.removeItem("currentUser");
