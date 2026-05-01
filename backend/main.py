@@ -7,7 +7,7 @@ import uvicorn
 from pathlib import Path
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel
 from typing import Dict, List, Optional
 from sqlalchemy.orm import Session
@@ -559,29 +559,37 @@ async def ai_chat(request: ChatRequest, db: Session = Depends(get_db)):
         f"{stats_context}"
     )
 
-    try:
-        async with httpx.AsyncClient(timeout=60.0) as client:
-            ollama_response = await client.post(
-                OLLAMA_URL,
-                json={
-                    "model": OLLAMA_MODEL,
-                    "messages": [
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": request.message},
-                    ],
-                    "stream": False,
-                    "keep_alive": "1m"
-                },
-            )
-            ollama_response.raise_for_status()
-            data = ollama_response.json()
-            reply = data.get("message", {}).get("content", "Nu am putut genera un răspuns.")
-    except httpx.HTTPError as e:
-        raise HTTPException(status_code=502, detail=f"Eroare la comunicarea cu modelul AI: {str(e)}")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Eroare internă AI: {str(e)}")
+    async def generate_ollama_stream():
+        try:
+            async with httpx.AsyncClient(timeout=60.0) as client:
+                async with client.stream(
+                    "POST",
+                    OLLAMA_URL,
+                    json={
+                        "model": OLLAMA_MODEL,
+                        "messages": [
+                            {"role": "system", "content": system_prompt},
+                            {"role": "user", "content": request.message},
+                        ],
+                        "stream": True,
+                    },
+                ) as response:
+                    async for line in response.aiter_lines():
+                        if line:
+                            yield line + "\n"
+        except Exception as e:
+            yield json.dumps({"error": str(e)}) + "\n"
 
-    return {"reply": reply}
+    return StreamingResponse(
+        generate_ollama_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Content-Type": "text/event-stream",
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        }
+    )
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

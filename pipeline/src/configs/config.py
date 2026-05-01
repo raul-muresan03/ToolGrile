@@ -41,7 +41,6 @@ def get_chapter_by_page(page_num):
             return chapter
     return "unknown_chapter"
 
-
 all_dirs = [
     RAW_DIR, TEMP_DIR, PAGES_DIR, RAW_QUIZZES_DIR,
     INDEXED_QUIZZES_DIR, ANSWER_BBOXES, PROCESSED_DIR
@@ -49,7 +48,6 @@ all_dirs = [
 
 for path in all_dirs:
     path.mkdir(parents=True, exist_ok=True)
-
 
 BINARY_THRESHOLD = 240
 HPP_THRESHOLD = 3000

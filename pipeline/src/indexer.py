@@ -27,7 +27,6 @@ def extract_circle_ROIs(image_path):
     ROI_list.sort(key=lambda item: item[0])
     return [item[1] for item in ROI_list]
 
-
 def extract_quiz_numbers_with_ocr(image_path):
     ROIs = extract_circle_ROIs(image_path)
     extracted = []
@@ -61,7 +60,6 @@ def extract_quiz_numbers_with_ocr(image_path):
 
     return extracted
 
-
 def rename_and_move_image(original_image_path, quiz_numbers, destination_folder):
     original_path = Path(original_image_path)
     original_stem = original_path.stem
@@ -80,7 +78,6 @@ def rename_and_move_image(original_image_path, quiz_numbers, destination_folder)
         new_image_path = dest_folder / f"{page_prefix}_quiz_{joined_numbers}.png"
 
     shutil.copy(original_image_path, new_image_path)
-
 
 def process_page_group(item):
     page_num, images_for_page = item
@@ -116,7 +113,6 @@ def process_page_group(item):
         rename_and_move_image(str(image_path), quiz_numbers, destination)
 
     return len(images_for_page)
-
 
 if __name__ == "__main__":
     images = list(RAW_QUIZZES_DIR.glob("*.png"))

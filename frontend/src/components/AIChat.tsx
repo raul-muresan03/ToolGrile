@@ -31,13 +31,53 @@ export default function AIChat({ username }: AIChatProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username: username, message: text }),
       });
+
       if (!res.ok) throw new Error("AI error");
-      const data = await res.json();
-      setChatMessages((prev) => [...prev, { role: "assistant", content: data.reply }]);
-    } catch (err) {
-      setChatMessages((prev) => [...prev, { role: "assistant", content: "Eroare de conexiune. Încearcă din nou." }]);
-    } finally {
+
+      const reader = res.body?.getReader();
+      if (!reader) throw new Error("No reader available");
+
       setChatLoading(false);
+      setChatMessages((prev) => [...prev, { role: "assistant", content: "" }]);
+
+      const decoder = new TextDecoder();
+      let assistantContent = "";
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          try {
+            const data = JSON.parse(line);
+            if (data.error) throw new Error(data.error);
+            const content = data.message?.content || "";
+            assistantContent += content;
+
+            setChatMessages((prev) => {
+              const newMessages = [...prev];
+              newMessages[newMessages.length - 1] = {
+                role: "assistant",
+                content: assistantContent,
+              };
+              return newMessages;
+            });
+          } catch (e) {
+          }
+        }
+      }
+    } catch (err) {
+      setChatLoading(false);
+      setChatMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: "Eroare de conexiune. Încearcă din nou." },
+      ]);
     }
   };
 
