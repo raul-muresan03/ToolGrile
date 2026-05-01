@@ -16,7 +16,7 @@ from database import engine, get_db, Base
 from models import User, Simulation
 
 ROOT_DIR = Path(__file__).parent.parent
-PROCESSED_DIR = ROOT_DIR / "data" / "processed"
+PROCESSED_DIR = Path(os.getenv("PROCESSED_DATA_PATH", str(ROOT_DIR / "data" / "processed")))
 ANSWERS_PATH = PROCESSED_DIR / "final_answers.json"
 
 def get_chapter_dirs():
