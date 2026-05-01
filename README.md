@@ -22,28 +22,47 @@ ToolGrile is an integrated solution for digitizing mathematical collections (UTC
 
 ```text
 ToolGrile/
-├── backend/            # FastAPI, SQLite, SQLAlchemy (Auth & Logic)
-├── frontend/           # Next.js, TailwindCSS, Recharts (Modern UI)
-├── pipeline/           # Computer Vision Digitization Pipeline
-│   ├── src/            # Segmentation & OCR logic
-│   └── run.py          # Pipeline orchestrator
-├── data/               # Digitized assets and processed grids
-└── README.md           # This file
+├── backend/                # FastAPI service (Auth, Simulations, AI proxy)
+├── frontend/               # Next.js 16 application (Standalone optimized)
+├── pipeline/               # CV Pipeline (Segmentation & OCR Digitization)
+├── data/                   # Persistent Volume (SQLite DB, Processed Grids)
+├── docker-compose.yml      # Service orchestration (FE, BE, Ollama)
+├── Dockerfile.backend      # Backend container definition
+├── Dockerfile.frontend     # Frontend multi-stage container definition
+└── README.md               # Project documentation
 ```
 
 ## Installation & Setup
 
-### Backend
+### Docker (Recommended)
+The fastest way to run the entire platform (Frontend, Backend, and AI) is using Docker Compose.
+
+1. **Start all services**:
+   ```bash
+   docker compose up -d
+   ```
+2. **Setup the AI Model** (one-time setup):
+   ```bash
+   docker exec toolgrile-ollama-1 ollama pull llama3.2:1b
+   ```
+3. **Access the platform**:
+   - Frontend: `http://localhost:3000`
+   - Backend API: `http://localhost:8000`
+
+### Local Development
+If you prefer running services manually:
+
+#### Backend
 1. Navigate to `backend/`.
 2. Install dependencies: `pip install -r requirements.txt`.
 3. Start the server: `python main.py`.
 
-### Frontend
+#### Frontend
 1. Navigate to `frontend/`.
 2. Install dependencies: `npm install`.
 3. Start the development server: `npm run dev`.
 
-### Pipeline
+### Digitization Pipeline
 1. Navigate to `pipeline/`.
 2. Install requirements: `pip install -r requirements.txt`.
 3. Run orchestrator: `python run.py --all`.
@@ -51,4 +70,5 @@ ToolGrile/
 ## Results Summary
 - **Digitization Accuracy**: 100% (959/959 grids identified).
 - **Answer Key Accuracy**: 98.8% automated extraction.
-- **Platform**: Fully responsive, clean UI, Docker-ready architecture.
+- **Persistence**: Full Docker volume integration for database and assets.
+- **Architecture**: Next.js 16 Standalone (optimized for production).
